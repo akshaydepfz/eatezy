@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 class HomeProvider extends ChangeNotifier {
   String _address = 'Loading...';
   int _selectedIndex = 0;
+  // ignore: unused_field
   bool _isLoading = false;
   int get selectedIndex => _selectedIndex;
 

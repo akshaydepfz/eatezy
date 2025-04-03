@@ -1,5 +1,4 @@
 import 'package:eatezy/style/app_color.dart';
-import 'package:eatezy/view/home/screens/home_screen.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:flutter/material.dart';
