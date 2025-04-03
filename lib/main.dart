@@ -1,7 +1,9 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/view/home/screens/home_screen.dart';
+import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -22,10 +24,11 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Flutter Demo',
         theme: ThemeData(
+          textTheme: GoogleFonts.rubikTextTheme(Theme.of(context).textTheme),
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: const HomeScreen(),
+        home: const LandingScreen(),
       ),
     );
   }

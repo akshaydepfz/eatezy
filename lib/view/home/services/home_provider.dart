@@ -1,13 +1,29 @@
 import 'dart:developer';
 
+import 'package:eatezy/view/home/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 class HomeProvider extends ChangeNotifier {
   String _address = 'Loading...';
+  int _selectedIndex = 0;
   bool _isLoading = false;
+  int get selectedIndex => _selectedIndex;
+
   String get address => _address;
+
+  void onSelectedChange(int i) {
+    _selectedIndex = i;
+    notifyListeners();
+  }
+
+  List<Widget> pages = const [
+    HomeScreen(),
+    HomeScreen(),
+    HomeScreen(),
+    HomeScreen(),
+  ];
 
   Future<void> getLocationAndAddress() async {
     _isLoading = true;
