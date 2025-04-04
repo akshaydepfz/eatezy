@@ -13,43 +13,45 @@ class RestaurantsListScreen extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CarouselSlider.builder(
-                itemCount: 1,
-                itemBuilder: (context, i, l) {
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      image: DecorationImage(
-                          image: AssetImage('assets/images/kfc.png'),
-                          alignment: Alignment.topCenter,
-                          fit: BoxFit.cover),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CarouselSlider.builder(
+                  itemCount: 1,
+                  itemBuilder: (context, i, l) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        image: DecorationImage(
+                            image: AssetImage('assets/images/kfc.png'),
+                            alignment: Alignment.topCenter,
+                            fit: BoxFit.cover),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
 
-                    height: 140, // Match the carousel height
-                    width: MediaQuery.of(context).size.width,
-                  );
-                },
-                options: CarouselOptions(
-                  viewportFraction: 1,
-                  aspectRatio: 1.0,
-                  autoPlay: true,
-                  initialPage: 0,
-                  height: 140,
+                      height: 140, // Match the carousel height
+                      width: MediaQuery.of(context).size.width,
+                    );
+                  },
+                  options: CarouselOptions(
+                    viewportFraction: 1,
+                    aspectRatio: 1.0,
+                    autoPlay: true,
+                    initialPage: 0,
+                    height: 140,
+                  ),
                 ),
-              ),
-              AppSpacing.h20,
-              Text(
-                'All Restaurants',
-                style: GoogleFonts.rubik(
-                    fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              AppSpacing.h10,
-              Expanded(
-                child: ListView.separated(
+                AppSpacing.h20,
+                Text(
+                  'All Restaurants',
+                  style: GoogleFonts.rubik(
+                      fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                AppSpacing.h10,
+                ListView.separated(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     separatorBuilder: (context, index) => Divider(),
                     itemCount: 10,
                     itemBuilder: (context, i) {
@@ -113,9 +115,9 @@ class RestaurantsListScreen extends StatelessWidget {
                               ))
                         ],
                       );
-                    }),
-              )
-            ],
+                    })
+              ],
+            ),
           ),
         ),
       ),

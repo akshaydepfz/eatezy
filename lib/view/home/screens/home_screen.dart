@@ -3,6 +3,7 @@ import 'package:eatezy/utils/app_icons.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
+import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -139,22 +140,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       itemCount: 6,
                       itemBuilder: (context, i) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: SizedBox(
-                                    height: 60,
-                                    width: 60,
-                                    child: Image.asset(
-                                      'assets/images/shawarma.png',
-                                    )),
-                              ),
-                              AppSpacing.h5,
-                              Text('Shawarma'),
-                            ],
+                        return GestureDetector(
+                          onTap: () {},
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(
+                                      height: 60,
+                                      width: 60,
+                                      child: Image.asset(
+                                        'assets/images/shawarma.png',
+                                      )),
+                                ),
+                                AppSpacing.h5,
+                                Text('Shawarma'),
+                              ],
+                            ),
                           ),
                         );
                       }),
@@ -180,81 +184,90 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       itemCount: 6,
                       itemBuilder: (context, i) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: SizedBox(
-                                    height: 100,
-                                    width: 160,
-                                    child: Image.asset(
-                                      'assets/images/kfc.png',
-                                      fit: BoxFit.cover,
-                                    )),
-                              ),
-                              AppSpacing.h5,
-                              Text(
-                                'KFC',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    '3.4',
-                                    style: TextStyle(
-                                      fontSize: 12,
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        RestaurantViewScreen()));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(
+                                      height: 100,
+                                      width: 160,
+                                      child: Image.asset(
+                                        'assets/images/kfc.png',
+                                        fit: BoxFit.cover,
+                                      )),
+                                ),
+                                AppSpacing.h5,
+                                Text(
+                                  'KFC',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '3.4',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.star,
+                                      size: 15,
                                       color: Colors.grey,
                                     ),
-                                  ),
-                                  Icon(
-                                    Icons.star,
-                                    size: 15,
-                                    color: Colors.grey,
-                                  ),
-                                  AppSpacing.w5,
-                                  Text(
-                                    '(200+)',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12),
-                                  ),
-                                  AppSpacing.w5,
-                                  Text(
-                                    '|',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12),
-                                  ),
-                                  AppSpacing.w5,
-                                  Text(
-                                    '5.7 Km',
-                                    style: TextStyle(
-                                        color: Colors.grey, fontSize: 12),
-                                  )
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.schedule,
-                                    size: 12,
-                                    color: Colors.green,
-                                  ),
-                                  AppSpacing.w5,
-                                  Text(
-                                    '10 min',
-                                    style: TextStyle(
-                                        color: Colors.green, fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                'FREE delivery on first order',
-                                style:
-                                    TextStyle(color: Colors.grey, fontSize: 12),
-                              ),
-                            ],
+                                    AppSpacing.w5,
+                                    Text(
+                                      '(200+)',
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 12),
+                                    ),
+                                    AppSpacing.w5,
+                                    Text(
+                                      '|',
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 12),
+                                    ),
+                                    AppSpacing.w5,
+                                    Text(
+                                      '5.7 Km',
+                                      style: TextStyle(
+                                          color: Colors.grey, fontSize: 12),
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.schedule,
+                                      size: 12,
+                                      color: Colors.green,
+                                    ),
+                                    AppSpacing.w5,
+                                    Text(
+                                      '10 min',
+                                      style: TextStyle(
+                                          color: Colors.green, fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  'FREE delivery on first order',
+                                  style: TextStyle(
+                                      color: Colors.grey, fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }),
