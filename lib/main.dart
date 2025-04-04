@@ -1,7 +1,6 @@
 import 'package:eatezy/style/app_color.dart';
-import 'package:eatezy/view/home/screens/landing_screen.dart';
+import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
-import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +26,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: const RestaurantViewScreen(),
+        home: const CartScreen(),
       ),
     );
   }
