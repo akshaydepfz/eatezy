@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:eatezy/view/categories/screens/categories_screen.dart';
 import 'package:eatezy/view/home/screens/home_screen.dart';
+import 'package:eatezy/view/profile/screens/profile_screen.dart';
 import 'package:eatezy/view/restaurants/screens/restaurants_list.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
@@ -25,7 +26,7 @@ class HomeProvider extends ChangeNotifier {
     HomeScreen(),
     CategoryScreen(),
     RestaurantsListScreen(),
-    HomeScreen(),
+    ProfileScreen(),
   ];
 
   Future<void> getLocationAndAddress() async {

@@ -1,4 +1,6 @@
+import 'package:eatezy/map_example.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -105,33 +107,42 @@ class RestaurantViewScreen extends StatelessWidget {
                       ],
                     ),
                     AppSpacing.h10,
-                    Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: EdgeInsets.all(10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SvgPicture.asset('assets/icons/map.svg'),
-                              AppSpacing.w10,
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Direction to Restaurant',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  Text('4.7 Km away from you')
-                                ],
-                              )
-                            ],
-                          ),
-                          IconButton(
-                              onPressed: () {}, icon: Icon(Icons.arrow_forward))
-                        ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => OSMTrackingScreen()));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: EdgeInsets.all(10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                SvgPicture.asset('assets/icons/map.svg'),
+                                AppSpacing.w10,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Direction to Restaurant',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                    Text('4.7 Km away from you')
+                                  ],
+                                )
+                              ],
+                            ),
+                            IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.arrow_forward))
+                          ],
+                        ),
                       ),
                     ),
                     AppSpacing.h20,
@@ -147,45 +158,55 @@ class RestaurantViewScreen extends StatelessWidget {
                           itemCount: 4,
                           scrollDirection: Axis.horizontal,
                           itemBuilder: (context, i) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Stack(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      height: 100,
-                                      width: 100,
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          image: DecorationImage(
-                                              image: AssetImage(
-                                                  'assets/images/kfc_food.png'),
-                                              fit: BoxFit.cover)),
-                                    ),
-                                    Positioned(
-                                      bottom: 10,
-                                      right: 20,
-                                      child: Container(
-                                        padding: EdgeInsets.all(3),
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => CartScreen()));
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Stack(
+                                    children: [
+                                      Container(
+                                        margin: EdgeInsets.only(right: 10),
+                                        height: 100,
+                                        width: 100,
                                         decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            shape: BoxShape.circle),
-                                        child: Icon(Icons.add,
-                                            color: Colors.black),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            image: DecorationImage(
+                                                image: AssetImage(
+                                                    'assets/images/kfc_food.png'),
+                                                fit: BoxFit.cover)),
                                       ),
-                                    )
-                                  ],
-                                ),
-                                AppSpacing.h5,
-                                SizedBox(
-                                    width: 80, child: Text('KFC Bucket Combo')),
-                                Text(
-                                  '₹120',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                )
-                              ],
+                                      Positioned(
+                                        bottom: 10,
+                                        right: 20,
+                                        child: Container(
+                                          padding: EdgeInsets.all(3),
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle),
+                                          child: Icon(Icons.add,
+                                              color: Colors.black),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  AppSpacing.h5,
+                                  SizedBox(
+                                      width: 80,
+                                      child: Text('KFC Bucket Combo')),
+                                  Text(
+                                    '₹120',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  )
+                                ],
+                              ),
                             );
                           }),
                     ),
@@ -210,43 +231,52 @@ class RestaurantViewScreen extends StatelessWidget {
                       ),
                       itemCount: 6,
                       itemBuilder: (context, index) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(right: 10),
-                                  height: 100,
-                                  width: 100,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      image: DecorationImage(
-                                          image: AssetImage(
-                                              'assets/images/kfc_food.png'),
-                                          fit: BoxFit.cover)),
-                                ),
-                                Positioned(
-                                  bottom: 10,
-                                  right: 20,
-                                  child: Container(
-                                    padding: EdgeInsets.all(3),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CartScreen()));
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.only(right: 10),
+                                    height: 100,
+                                    width: 100,
                                     decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle),
-                                    child: Icon(Icons.add, color: Colors.black),
+                                        borderRadius: BorderRadius.circular(12),
+                                        image: DecorationImage(
+                                            image: AssetImage(
+                                                'assets/images/kfc_food.png'),
+                                            fit: BoxFit.cover)),
                                   ),
-                                )
-                              ],
-                            ),
-                            AppSpacing.h5,
-                            SizedBox(
-                                width: 80, child: Text('KFC Bucket Combo')),
-                            Text(
-                              '₹120',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            )
-                          ],
+                                  Positioned(
+                                    bottom: 10,
+                                    right: 20,
+                                    child: Container(
+                                      padding: EdgeInsets.all(3),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle),
+                                      child:
+                                          Icon(Icons.add, color: Colors.black),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              AppSpacing.h5,
+                              SizedBox(
+                                  width: 80, child: Text('KFC Bucket Combo')),
+                              Text(
+                                '₹120',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              )
+                            ],
+                          ),
                         );
                       },
                     )

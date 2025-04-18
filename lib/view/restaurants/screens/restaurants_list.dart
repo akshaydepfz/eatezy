@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -55,65 +56,75 @@ class RestaurantsListScreen extends StatelessWidget {
                     separatorBuilder: (context, index) => Divider(),
                     itemCount: 10,
                     itemBuilder: (context, i) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                  height: 60,
-                                  width: 60,
-                                  child: CircleAvatar(
-                                    backgroundImage: AssetImage(
-                                        'assets/images/kfc_logo.png'),
-                                  )),
-                              AppSpacing.w10,
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'KFC',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.place,
-                                        size: 15,
-                                        color: Colors.grey,
-                                      ),
-                                      Text(
-                                        '12 Km away',
-                                        style: TextStyle(
-                                            color: Colors.grey, fontSize: 13),
-                                      ),
-                                    ],
-                                  ),
-                                  AppSpacing.h5,
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(6),
-                                        color: Colors.red.shade100),
-                                    padding: EdgeInsets.all(3),
-                                    child: Text(
-                                      '30% off, up to ₹300',
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      RestaurantViewScreen()));
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                SizedBox(
+                                    height: 60,
+                                    width: 60,
+                                    child: CircleAvatar(
+                                      backgroundImage: AssetImage(
+                                          'assets/images/kfc_logo.png'),
+                                    )),
+                                AppSpacing.w10,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'KFC',
                                       style: TextStyle(
-                                          fontSize: 11, color: Colors.red),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.favorite,
-                                color: Colors.grey.shade300,
-                              ))
-                        ],
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.place,
+                                          size: 15,
+                                          color: Colors.grey,
+                                        ),
+                                        Text(
+                                          '12 Km away',
+                                          style: TextStyle(
+                                              color: Colors.grey, fontSize: 13),
+                                        ),
+                                      ],
+                                    ),
+                                    AppSpacing.h5,
+                                    Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(6),
+                                          color: Colors.red.shade100),
+                                      padding: EdgeInsets.all(3),
+                                      child: Text(
+                                        '30% off, up to ₹300',
+                                        style: TextStyle(
+                                            fontSize: 11, color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                                onPressed: () {},
+                                icon: Icon(
+                                  Icons.favorite,
+                                  color: Colors.grey.shade300,
+                                ))
+                          ],
+                        ),
                       );
                     })
               ],

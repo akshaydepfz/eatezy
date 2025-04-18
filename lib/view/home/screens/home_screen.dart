@@ -1,6 +1,7 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_icons.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
@@ -73,10 +74,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     GestureDetector(
                         onTap: () {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => const CartScreen()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CartScreen()));
                         },
                         child: const CustomIcon(icon: AppIcons.bag)),
                   ],
@@ -108,21 +109,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       itemCount: 6,
                       itemBuilder: (context, i) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Column(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: SizedBox(
-                                    height: 60,
-                                    width: 60,
-                                    child: Image.asset(
-                                        'assets/images/biriyani.png')),
-                              ),
-                              AppSpacing.h5,
-                              Text('Biriyani'),
-                            ],
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CartScreen()));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(
+                                      height: 60,
+                                      width: 60,
+                                      child: Image.asset(
+                                          'assets/images/biriyani.png')),
+                                ),
+                                AppSpacing.h5,
+                                Text('Biriyani'),
+                              ],
+                            ),
                           ),
                         );
                       }),
@@ -141,7 +150,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemCount: 6,
                       itemBuilder: (context, i) {
                         return GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CartScreen()));
+                          },
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10),
                             child: Column(
@@ -293,42 +307,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       shrinkWrap: true,
                       itemCount: 6,
                       itemBuilder: (context, i) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: SizedBox(
-                                    height: 100,
-                                    width: 100,
-                                    child:
-                                        Image.asset('assets/images/food.png')),
-                              ),
-                              AppSpacing.h5,
-                              SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    'Chicken Bucket Combo',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  )),
-                              Text('₹699'),
-                              AppSpacing.h5,
-                              Container(
-                                padding: EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                    color: Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(5)),
-                                child: Text(
-                                  '#1 MOST LIKED',
-                                  style: TextStyle(fontSize: 10),
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        RestaurantViewScreen()));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: SizedBox(
+                                      height: 100,
+                                      width: 100,
+                                      child: Image.asset(
+                                          'assets/images/food.png')),
                                 ),
-                              )
-                            ],
+                                AppSpacing.h5,
+                                SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      'Chicken Bucket Combo',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    )),
+                                Text('₹699'),
+                                AppSpacing.h5,
+                                Container(
+                                  padding: EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                      color: Colors.grey.shade300,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: Text(
+                                    '#1 MOST LIKED',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         );
                       }),
