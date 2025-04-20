@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 class RestuarantProvider extends ChangeNotifier {
   List<ProductModel>? products;
   List<ProductModel>? featuredProducts;
+  List<ProductModel>? catProducts;
 
   Future<void> fetchProducts(String vendorID) async {
     products = null;
@@ -46,6 +47,26 @@ class RestuarantProvider extends ChangeNotifier {
     } catch (e) {
       print('Error fetching products: $e');
       featuredProducts = null;
+    }
+  }
+
+  Future<void> fetchCategoryProducts(String category) async {
+    catProducts = null;
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where('category', isEqualTo: category)
+          .get();
+
+      catProducts = snapshot.docs
+          .map((doc) => ProductModel.fromFirestore(
+              doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching products: $e');
+      catProducts = null;
     }
   }
 

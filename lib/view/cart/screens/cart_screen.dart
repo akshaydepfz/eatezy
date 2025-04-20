@@ -1,12 +1,16 @@
+import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
+import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<CartService>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text('Cart'),
@@ -37,56 +41,22 @@ class CartScreen extends StatelessWidget {
                   ListView.separated(
                       shrinkWrap: true,
                       separatorBuilder: (context, index) => Divider(),
-                      itemCount: 2,
+                      itemCount: provider.selectedProduct.length,
                       itemBuilder: (context, i) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                SizedBox(
-                                    height: 80,
-                                    width: 80,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.asset(
-                                        'assets/images/kfc_food.png',
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )),
-                                AppSpacing.w10,
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Chicken Bucket Combo',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      '2 pc Hot & Cripy Chicken',
-                                      style: TextStyle(
-                                          color: Colors.grey, fontSize: 14),
-                                    ),
-                                    Text(
-                                      '₹599',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
-                            IconButton(
-                                onPressed: () {},
-                                icon: Icon(Icons.delete_forever,
-                                    color: Colors.red))
-                          ],
-                        );
+                        return CartProductCard(
+                            itemCount: provider.selectedProduct[i].itemCount
+                                .toString(),
+                            onAdd: () => provider.onItemAdd(i),
+                            onDelete: () => provider.onItemDelete(i),
+                            onRemove: () => provider.onItemRemove(i),
+                            image: provider.selectedProduct[i].image,
+                            name: provider.selectedProduct[i].name,
+                            description:
+                                provider.selectedProduct[i].description,
+                            price:
+                                provider.selectedProduct[i].price.toString());
                       }),
+                  AppSpacing.h20,
                   Align(
                     alignment: Alignment.topRight,
                     child: Container(
@@ -130,22 +100,7 @@ class CartScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 15),
                       ),
                       Text(
-                        '₹599',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  AppSpacing.h10,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Service Fee',
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      Text(
-                        '₹20',
+                        '₹${provider.getTotalAmount(0, 0)}',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 15),
                       ),
@@ -163,7 +118,7 @@ class CartScreen extends StatelessWidget {
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '₹619',
+                        '₹${provider.getTotalAmount(0, 0)}',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 15),
                       ),
@@ -184,14 +139,121 @@ class CartScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: PrimaryButton(
-                isLoading: false,
-                onTap: () {},
+                isLoading: provider.isLoading,
+                onTap: () => provider.buyNow(context, provider.selectedProduct),
                 label: 'Continue',
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CartProductCard extends StatelessWidget {
+  const CartProductCard({
+    super.key,
+    required this.image,
+    required this.name,
+    required this.description,
+    required this.price,
+    required this.onDelete,
+    required this.onAdd,
+    required this.onRemove,
+    required this.itemCount,
+  });
+  final String image;
+  final String name;
+  final String description;
+  final String price;
+  final Function() onDelete;
+  final Function() onAdd;
+  final Function() onRemove;
+  final String itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                SizedBox(
+                    height: 80,
+                    width: 80,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                      ),
+                    )),
+                AppSpacing.w10,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width / 2,
+                      child: Text(
+                        description,
+                        maxLines: 1,
+                        style: TextStyle(color: Colors.grey, fontSize: 14),
+                      ),
+                    ),
+                    Text(
+                      '₹$price',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    AppSpacing.h10,
+                  ],
+                ),
+              ],
+            ),
+            IconButton(
+                onPressed: onDelete,
+                icon: Icon(Icons.delete_forever, color: Colors.red))
+          ],
+        ),
+        Positioned(
+          bottom: 0,
+          right: 0,
+          child: Container(
+            width: 100,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColor.primary)),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: onRemove,
+                  child: const Icon(Icons.remove, color: AppColor.primary),
+                ),
+                AppSpacing.w10,
+                Text(
+                  itemCount,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                AppSpacing.w10,
+                GestureDetector(
+                  onTap: onAdd,
+                  child: const Icon(Icons.add, color: AppColor.primary),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

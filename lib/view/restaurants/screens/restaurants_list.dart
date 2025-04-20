@@ -1,9 +1,11 @@
 import 'package:carousel_slider/carousel_options.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class RestaurantsListScreen extends StatelessWidget {
   const RestaurantsListScreen({super.key});
@@ -50,84 +52,93 @@ class RestaurantsListScreen extends StatelessWidget {
                       fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 AppSpacing.h10,
-                ListView.separated(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    separatorBuilder: (context, index) => Divider(),
-                    itemCount: 10,
-                    itemBuilder: (context, i) {
-                      return GestureDetector(
-                        onTap: () {
-                          // Navigator.push(
-                          //     context,
-                          //     MaterialPageRoute(
-                          //         builder: (context) => RestaurantViewScreen(
-                          //               vendor: Vemd,
-                          //             )));
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
+                Consumer<HomeProvider>(builder: (context, p, _) {
+                  if (p.vendors == null) {
+                    return SizedBox();
+                  }
+                  return ListView.separated(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      separatorBuilder: (context, index) => Divider(),
+                      itemCount: p.vendors!.length,
+                      itemBuilder: (context, i) {
+                        return Container(
+                          padding: EdgeInsets.all(15),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12)),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          RestaurantViewScreen(
+                                            vendor: p.vendors![i],
+                                          )));
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                SizedBox(
-                                    height: 60,
-                                    width: 60,
-                                    child: CircleAvatar(
-                                      backgroundImage: AssetImage(
-                                          'assets/images/kfc_logo.png'),
-                                    )),
-                                AppSpacing.w10,
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                Row(
                                   children: [
-                                    Text(
-                                      'KFC',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Row(
+                                    SizedBox(
+                                        height: 60,
+                                        width: 60,
+                                        child: CircleAvatar(
+                                          backgroundImage: NetworkImage(
+                                              p.vendors![i].shopImage),
+                                        )),
+                                    AppSpacing.w10,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          Icons.place,
-                                          size: 15,
-                                          color: Colors.grey,
-                                        ),
                                         Text(
-                                          '12 Km away',
+                                          p.vendors![i].shopName,
                                           style: TextStyle(
-                                              color: Colors.grey, fontSize: 13),
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.place,
+                                              size: 15,
+                                              color: Colors.grey,
+                                            ),
+                                            Text(
+                                              "${p.vendors![i].estimateDistance} away",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 13),
+                                            ),
+                                          ],
+                                        ),
+                                        AppSpacing.h5,
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              color: Colors.red.shade100),
+                                          padding: EdgeInsets.all(3),
+                                          child: Text(
+                                            '30% off, up to ₹300',
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.red),
+                                          ),
                                         ),
                                       ],
-                                    ),
-                                    AppSpacing.h5,
-                                    Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(6),
-                                          color: Colors.red.shade100),
-                                      padding: EdgeInsets.all(3),
-                                      child: Text(
-                                        '30% off, up to ₹300',
-                                        style: TextStyle(
-                                            fontSize: 11, color: Colors.red),
-                                      ),
                                     ),
                                   ],
                                 ),
                               ],
                             ),
-                            IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  Icons.favorite,
-                                  color: Colors.grey.shade300,
-                                ))
-                          ],
-                        ),
-                      );
-                    })
+                          ),
+                        );
+                      });
+                })
               ],
             ),
           ),

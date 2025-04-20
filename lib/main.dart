@@ -1,6 +1,8 @@
 import 'package:eatezy/style/app_color.dart';
+import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
+import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => HomeProvider()),
         ChangeNotifierProvider(create: (context) => RestuarantProvider()),
+        ChangeNotifierProvider(create: (context) => CartService()),
+        ChangeNotifierProvider(create: (context) => OrderService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

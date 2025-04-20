@@ -8,7 +8,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class OSMTrackingScreen extends StatefulWidget {
-  const OSMTrackingScreen({super.key});
+  final double lat;
+  final double long;
+  const OSMTrackingScreen({super.key, required this.lat, required this.long});
 
   @override
   State<OSMTrackingScreen> createState() => _OSMTrackingScreenState();
@@ -16,7 +18,7 @@ class OSMTrackingScreen extends StatefulWidget {
 
 class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
   LatLng? currentLocation;
-  LatLng destination = LatLng(11.2537, 75.7764); // Bangalore
+
   double? distance;
   final mapController = MapController();
   StreamSubscription<Position>? _positionStream;
@@ -56,13 +58,13 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
       distance = Geolocator.distanceBetween(
             start.latitude,
             start.longitude,
-            destination.latitude,
-            destination.longitude,
+            widget.lat,
+            widget.long,
           ) /
           1000;
     });
 
-    await _getRoute(start, destination);
+    await _getRoute(start, LatLng(widget.lat, widget.long));
 
     _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
@@ -73,13 +75,13 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
         distance = Geolocator.distanceBetween(
               pos.latitude,
               pos.longitude,
-              destination.latitude,
-              destination.longitude,
+              widget.lat,
+              widget.long,
             ) /
             1000;
       });
       mapController.move(newLoc, 16);
-      await _getRoute(newLoc, destination);
+      await _getRoute(newLoc, LatLng(widget.lat, widget.long));
     });
   }
 
@@ -142,7 +144,7 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                               size: 40, color: AppColor.primary),
                         ),
                         Marker(
-                          point: destination,
+                          point: LatLng(widget.lat, widget.long),
                           child: const Icon(Icons.place,
                               size: 40, color: Colors.red),
                         ),

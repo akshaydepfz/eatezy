@@ -1,7 +1,9 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/orders/screens/order_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -58,6 +60,33 @@ class ProfileScreen extends StatelessWidget {
                     const ProfileTile(
                       icon: 'assets/icons/iphone.png',
                       label: "+91 9946152058",
+                    ),
+                    AppSpacing.h10,
+                    Divider(color: Colors.grey.shade300),
+                    AppSpacing.h10,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => OrderScreeen()));
+                      },
+                      child: Row(
+                        children: [
+                          SizedBox(
+                              height: 25,
+                              width: 25,
+                              child: SvgPicture.asset(
+                                'assets/icons/order.svg',
+                                color: AppColor.primary,
+                              )),
+                          AppSpacing.w10,
+                          Text(
+                            'My Orders',
+                            style: const TextStyle(fontSize: 16),
+                          )
+                        ],
+                      ),
                     ),
                   ],
                 ),

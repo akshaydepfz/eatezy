@@ -2,9 +2,11 @@ import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_icons.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
+import 'package:eatezy/view/categories/screens/category_view_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
+import 'package:eatezy/view/top_dish/screens/top_dish_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     Provider.of<HomeProvider>(context, listen: false).getLocationAndAddress();
     Provider.of<HomeProvider>(context, listen: false).gettVendors();
+    Provider.of<HomeProvider>(context, listen: false).fetchCategory();
+    Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
     super.initState();
   }
 
@@ -104,81 +108,86 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontSize: 17, fontWeight: FontWeight.w600),
                 ),
                 AppSpacing.h10,
-                SizedBox(
-                  height: 90,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemCount: 6,
-                      itemBuilder: (context, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CartScreen()));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: SizedBox(
-                                      height: 60,
-                                      width: 60,
-                                      child: Image.asset(
-                                          'assets/images/biriyani.png')),
-                                ),
-                                AppSpacing.h5,
-                                Text('Biriyani'),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                ),
-                AppSpacing.h10,
                 Divider(
                   thickness: 2,
                   color: Colors.grey.shade100,
                 ),
                 AppSpacing.h10,
-                SizedBox(
-                  height: 90,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
+                Consumer<HomeProvider>(builder: (context, p, _) {
+                  if (p.category == null) {
+                    return GridView.builder(
                       shrinkWrap: true,
-                      itemCount: 6,
-                      itemBuilder: (context, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CartScreen()));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              children: [
-                                ClipRRect(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 0.9),
+                      itemCount: 8,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: Center(
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(12)),
+                                width: MediaQuery.of(context).size.width,
+                                height: 100,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 4,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.9),
+                    itemCount: p.category!.length,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => CategoryViewScreen(
+                                        image: p.category![index].image,
+                                        category: p.category![index].name,
+                                      )));
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: Column(
+                            children: [
+                              Hero(
+                                tag: '12',
+                                child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: SizedBox(
                                       height: 60,
                                       width: 60,
-                                      child: Image.asset(
-                                        'assets/images/shawarma.png',
-                                      )),
+                                      child: Image.network(
+                                          p.category![index].image)),
                                 ),
-                                AppSpacing.h5,
-                                Text('Shawarma'),
-                              ],
-                            ),
+                              ),
+                              AppSpacing.h5,
+                              Text(p.category![index].name),
+                            ],
                           ),
-                        );
-                      }),
-                ),
+                        ),
+                      );
+                    },
+                  );
+                }),
                 AppSpacing.h10,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -252,59 +261,43 @@ class _HomeScreenState extends State<HomeScreen> {
                 AppSpacing.h10,
                 SizedBox(
                   height: 200,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemCount: 6,
-                      itemBuilder: (context, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) =>
-                            //             RestaurantViewScreen()));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: SizedBox(
-                                      height: 100,
-                                      width: 100,
-                                      child: Image.asset(
-                                          'assets/images/food.png')),
-                                ),
-                                AppSpacing.h5,
-                                SizedBox(
-                                    width: 100,
-                                    child: Text(
-                                      'Chicken Bucket Combo',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                      ),
-                                    )),
-                                Text('₹699'),
-                                AppSpacing.h5,
-                                Container(
-                                  padding: EdgeInsets.all(3),
-                                  decoration: BoxDecoration(
-                                      color: Colors.grey.shade300,
-                                      borderRadius: BorderRadius.circular(5)),
-                                  child: Text(
-                                    '#1 MOST LIKED',
-                                    style: TextStyle(fontSize: 10),
+                  child: Consumer<HomeProvider>(builder: (context, p, _) {
+                    if (p.topProducts == null) {
+                      return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          itemCount: 6,
+                          itemBuilder: (context, i) {
+                            return Padding(
+                              padding: const EdgeInsets.all(0.0),
+                              child: Center(
+                                child: Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 200,
                                   ),
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
+                                ),
+                              ),
+                            );
+                          });
+                    }
+                    return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        itemCount: p.topProducts!.length,
+                        itemBuilder: (context, i) {
+                          return TopDishCard(
+                              image: p.topProducts![i].image,
+                              name: p.topProducts![i].name,
+                              price: p.topProducts![i].price.toString());
+                        });
+                  }),
                 ),
                 AppSpacing.h20,
                 CarouselSlider.builder(
@@ -334,6 +327,63 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class TopDishCard extends StatelessWidget {
+  const TopDishCard({
+    super.key,
+    required this.image,
+    required this.name,
+    required this.price,
+  });
+  final String image;
+  final String name;
+  final String price;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => TopDishScreen()));
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                  height: 100, width: 100, child: Image.network(image)),
+            ),
+            AppSpacing.h5,
+            SizedBox(
+                width: 100,
+                child: Text(
+                  name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                )),
+            Text('₹$price'),
+            AppSpacing.h5,
+            Container(
+              padding: EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(5)),
+              child: Text(
+                '#1 MOST LIKED',
+                style: TextStyle(fontSize: 10),
+              ),
+            )
+          ],
         ),
       ),
     );

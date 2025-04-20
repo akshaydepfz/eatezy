@@ -10,20 +10,21 @@ class ProductModel {
   double price;
   String slashedPrice;
   String unitPerItem;
+  int itemCount;
 
-  ProductModel({
-    required this.id,
-    required this.name,
-    required this.image,
-    required this.description,
-    required this.category,
-    required this.unit,
-    required this.stock,
-    required this.maxOrder,
-    required this.price,
-    required this.slashedPrice,
-    required this.unitPerItem,
-  });
+  ProductModel(
+      {required this.id,
+      required this.name,
+      required this.image,
+      required this.description,
+      required this.category,
+      required this.unit,
+      required this.stock,
+      required this.maxOrder,
+      required this.price,
+      required this.slashedPrice,
+      required this.unitPerItem,
+      required this.itemCount});
 
   // Create a factory method to map Firestore data to ProductModel
   factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
@@ -42,6 +43,7 @@ class ProductModel {
             ? double.parse(data['price'].toString())
             : 0.0,
         slashedPrice: data['slashedPrice'],
-        unitPerItem: data['unitPerItem'] ?? "");
+        unitPerItem: data['unitPerItem'] ?? "",
+        itemCount: data['item_count'] ?? 0);
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eatezy/model/category_model.dart';
+import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/view/categories/screens/categories_screen.dart';
 import 'package:eatezy/view/home/screens/home_screen.dart';
@@ -14,7 +16,8 @@ class HomeProvider extends ChangeNotifier {
   String _address = 'Loading...';
   int _selectedIndex = 0;
   List<VendorModel>? vendors;
-
+  List<ProductModel>? topProducts;
+  List<CategoryModel>? category;
   bool _isLoading = false;
   int get selectedIndex => _selectedIndex;
 
@@ -108,6 +111,37 @@ class HomeProvider extends ChangeNotifier {
       _address = '$e';
     } finally {
       _isLoading = false;
+    }
+  }
+
+  Future<void> fetchCategory() async {
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('categories')
+        .orderBy('order')
+        .get();
+
+    category = snapshot.docs.map((doc) {
+      return CategoryModel.fromFirestore(
+          doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
+  }
+
+  Future<void> fetchTopProducts() async {
+    topProducts = null;
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('products')
+          .where('is_top', isEqualTo: true)
+          .get();
+
+      topProducts = snapshot.docs
+          .map((doc) => ProductModel.fromFirestore(
+              doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching products: $e');
+      topProducts = null;
     }
   }
 }
