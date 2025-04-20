@@ -58,11 +58,12 @@ class RestaurantsListScreen extends StatelessWidget {
                     itemBuilder: (context, i) {
                       return GestureDetector(
                         onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      RestaurantViewScreen()));
+                          // Navigator.push(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => RestaurantViewScreen(
+                          //               vendor: Vemd,
+                          //             )));
                         },
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

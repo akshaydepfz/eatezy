@@ -1,6 +1,7 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
+import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => HomeProvider()),
+        ChangeNotifierProvider(create: (context) => RestuarantProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

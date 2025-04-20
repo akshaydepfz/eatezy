@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:shimmer/shimmer.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     Provider.of<HomeProvider>(context, listen: false).getLocationAndAddress();
+    Provider.of<HomeProvider>(context, listen: false).gettVendors();
     super.initState();
   }
 
@@ -191,101 +193,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 AppSpacing.h10,
-                SizedBox(
-                  height: 180,
-                  child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      shrinkWrap: true,
-                      itemCount: 6,
-                      itemBuilder: (context, i) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        RestaurantViewScreen()));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: SizedBox(
-                                      height: 100,
-                                      width: 160,
-                                      child: Image.asset(
-                                        'assets/images/kfc.png',
-                                        fit: BoxFit.cover,
-                                      )),
-                                ),
-                                AppSpacing.h5,
-                                Text(
-                                  'KFC',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '3.4',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.star,
-                                      size: 15,
-                                      color: Colors.grey,
-                                    ),
-                                    AppSpacing.w5,
-                                    Text(
-                                      '(200+)',
-                                      style: TextStyle(
-                                          color: Colors.grey, fontSize: 12),
-                                    ),
-                                    AppSpacing.w5,
-                                    Text(
-                                      '|',
-                                      style: TextStyle(
-                                          color: Colors.grey, fontSize: 12),
-                                    ),
-                                    AppSpacing.w5,
-                                    Text(
-                                      '5.7 Km',
-                                      style: TextStyle(
-                                          color: Colors.grey, fontSize: 12),
-                                    )
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule,
-                                      size: 12,
-                                      color: Colors.green,
-                                    ),
-                                    AppSpacing.w5,
-                                    Text(
-                                      '10 min',
-                                      style: TextStyle(
-                                          color: Colors.green, fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  'FREE delivery on first order',
-                                  style: TextStyle(
-                                      color: Colors.grey, fontSize: 12),
-                                ),
-                              ],
-                            ),
+                Consumer<HomeProvider>(builder: (context, p, _) {
+                  if (p.vendors == null) {
+                    return Padding(
+                      padding: const EdgeInsets.all(0.0),
+                      child: Center(
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(12)),
+                            width: MediaQuery.of(context).size.width,
+                            height: 100,
                           ),
-                        );
-                      }),
-                ),
+                        ),
+                      ),
+                    );
+                  }
+                  return SizedBox(
+                    height: 180,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        shrinkWrap: true,
+                        itemCount: p.vendors!.length,
+                        itemBuilder: (context, i) {
+                          return RestuarantCard(
+                              distance: p.vendors![i].estimateDistance,
+                              time: p.vendors![i].estimateTime,
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            RestaurantViewScreen(
+                                              vendor: p.vendors![i],
+                                            )));
+                              },
+                              image: p.vendors![i].shopImage,
+                              name: p.vendors![i].shopName);
+                        }),
+                  );
+                }),
                 AppSpacing.h10,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -309,11 +259,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, i) {
                         return GestureDetector(
                           onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        RestaurantViewScreen()));
+                            // Navigator.push(
+                            //     context,
+                            //     MaterialPageRoute(
+                            //         builder: (context) =>
+                            //             RestaurantViewScreen()));
                           },
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10),
@@ -384,6 +334,101 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class RestuarantCard extends StatelessWidget {
+  const RestuarantCard({
+    super.key,
+    required this.image,
+    required this.name,
+    required this.onTap,
+    required this.distance,
+    required this.time,
+  });
+  final String image;
+  final String name;
+  final Function() onTap;
+  final String distance;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                  height: 100,
+                  width: 160,
+                  child: Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                  )),
+            ),
+            AppSpacing.h5,
+            Text(
+              name,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Row(
+              children: [
+                Text(
+                  '3.4',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+                Icon(
+                  Icons.star,
+                  size: 15,
+                  color: Colors.grey,
+                ),
+                AppSpacing.w5,
+                Text(
+                  '(200+)',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                AppSpacing.w5,
+                Text(
+                  '|',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                AppSpacing.w5,
+                Text(
+                  distance,
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.schedule,
+                  size: 12,
+                  color: Colors.green,
+                ),
+                AppSpacing.w5,
+                Text(
+                  time,
+                  style: TextStyle(color: Colors.green, fontSize: 12),
+                ),
+              ],
+            ),
+            Text(
+              'FREE delivery on first order',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
         ),
       ),
     );

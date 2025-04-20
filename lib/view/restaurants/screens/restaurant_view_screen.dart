@@ -1,12 +1,31 @@
 import 'package:eatezy/map_example.dart';
+import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
+import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
-class RestaurantViewScreen extends StatelessWidget {
-  const RestaurantViewScreen({super.key});
+class RestaurantViewScreen extends StatefulWidget {
+  const RestaurantViewScreen({super.key, required this.vendor});
+  final VendorModel vendor;
+
+  @override
+  State<RestaurantViewScreen> createState() => _RestaurantViewScreenState();
+}
+
+class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
+  @override
+  void initState() {
+    Provider.of<RestuarantProvider>(context, listen: false)
+        .fetchProducts(widget.vendor.id);
+    Provider.of<RestuarantProvider>(context, listen: false)
+        .calculateDistanceAndTime(widget.vendor.id);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,17 +77,18 @@ class RestaurantViewScreen extends StatelessWidget {
                       left: 20,
                       top: 80,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
                               height: 80,
                               width: 80,
                               child: CircleAvatar(
                                 backgroundImage:
-                                    AssetImage('assets/images/kfc_logo.png'),
+                                    NetworkImage(widget.vendor.shopImage),
                               )),
                           AppSpacing.h10,
                           Text(
-                            'KFC',
+                            widget.vendor.shopName,
                             style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -85,7 +105,7 @@ class RestaurantViewScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'KFC',
+                      widget.vendor.shopName,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -146,146 +166,178 @@ class RestaurantViewScreen extends StatelessWidget {
                       ),
                     ),
                     AppSpacing.h20,
-                    Text(
-                      'Featured Items',
-                      style: GoogleFonts.rubik(
-                          fontSize: 18, fontWeight: FontWeight.w600),
-                    ),
-                    AppSpacing.h10,
-                    SizedBox(
-                      height: 175,
-                      child: ListView.builder(
-                          itemCount: 4,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, i) {
-                            return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => CartScreen()));
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        margin: EdgeInsets.only(right: 10),
-                                        height: 100,
-                                        width: 100,
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            image: DecorationImage(
-                                                image: AssetImage(
-                                                    'assets/images/kfc_food.png'),
-                                                fit: BoxFit.cover)),
-                                      ),
-                                      Positioned(
-                                        bottom: 10,
-                                        right: 20,
-                                        child: Container(
-                                          padding: EdgeInsets.all(3),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              shape: BoxShape.circle),
-                                          child: Icon(Icons.add,
-                                              color: Colors.black),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  AppSpacing.h5,
-                                  SizedBox(
-                                      width: 80,
-                                      child: Text('KFC Bucket Combo')),
-                                  Text(
-                                    '₹120',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold),
-                                  )
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
-                    Divider(
-                      color: Colors.grey.shade300,
-                    ),
-                    AppSpacing.h20,
+                    Consumer<RestuarantProvider>(builder: (context, p, _) {
+                      if (p.featuredProducts == null) {
+                        return SizedBox();
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Featured Items',
+                            style: GoogleFonts.rubik(
+                                fontSize: 18, fontWeight: FontWeight.w600),
+                          ),
+                          AppSpacing.h10,
+                          SizedBox(
+                            height: 175,
+                            child: ListView.builder(
+                                itemCount: p.featuredProducts!.length,
+                                scrollDirection: Axis.horizontal,
+                                itemBuilder: (context, i) {
+                                  return ProductCard(
+                                    image: p.featuredProducts![i].image,
+                                    name: p.featuredProducts![i].name,
+                                    price:
+                                        p.featuredProducts![i].price.toString(),
+                                    slashedPrice:
+                                        p.featuredProducts![i].slashedPrice,
+                                  );
+                                }),
+                          ),
+                          Divider(
+                            color: Colors.grey.shade300,
+                          ),
+                          AppSpacing.h20,
+                        ],
+                      );
+                    }),
                     Text(
                       'All Items',
                       style: GoogleFonts.rubik(
                           fontSize: 18, fontWeight: FontWeight.w600),
                     ),
                     AppSpacing.h10,
-                    GridView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 8,
-                        childAspectRatio: 0.7,
-                      ),
-                      itemCount: 6,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CartScreen()));
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Stack(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(right: 10),
-                                    height: 100,
-                                    width: 100,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        image: DecorationImage(
-                                            image: AssetImage(
-                                                'assets/images/kfc_food.png'),
-                                            fit: BoxFit.cover)),
-                                  ),
-                                  Positioned(
-                                    bottom: 10,
-                                    right: 20,
+                    Consumer<RestuarantProvider>(builder: (context, p, _) {
+                      if (p.products == null) {
+                        return GridView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 0.7,
+                            ),
+                            itemCount: 4,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.all(0.0),
+                                child: Center(
+                                  child: Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
                                     child: Container(
-                                      padding: EdgeInsets.all(3),
                                       decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          shape: BoxShape.circle),
-                                      child:
-                                          Icon(Icons.add, color: Colors.black),
+                                          color: Colors.grey[300],
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                      width: MediaQuery.of(context).size.width,
+                                      height: 100,
                                     ),
-                                  )
-                                ],
-                              ),
-                              AppSpacing.h5,
-                              SizedBox(
-                                  width: 80, child: Text('KFC Bucket Combo')),
-                              Text(
-                                '₹120',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    )
+                                  ),
+                                ),
+                              );
+                            });
+                      }
+                      return GridView.builder(
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: p.products!.length,
+                        itemBuilder: (context, index) {
+                          return ProductCard(
+                            image: p.products![index].image,
+                            name: p.products![index].name,
+                            price: p.products![index].price.toString(),
+                            slashedPrice: p.products![index].slashedPrice,
+                          );
+                        },
+                      );
+                    })
                   ],
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class ProductCard extends StatelessWidget {
+  const ProductCard({
+    super.key,
+    required this.image,
+    required this.name,
+    required this.price,
+    required this.slashedPrice,
+  });
+  final String image;
+  final String name;
+  final String price;
+  final String slashedPrice;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => CartScreen()));
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            children: [
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                height: 100,
+                width: 100,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                        image: NetworkImage(image), fit: BoxFit.cover)),
+              ),
+              Positioned(
+                bottom: 10,
+                right: 20,
+                child: Container(
+                  padding: EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                      color: Colors.white, shape: BoxShape.circle),
+                  child: Icon(Icons.add, color: Colors.black),
+                ),
+              )
+            ],
+          ),
+          AppSpacing.h5,
+          SizedBox(width: 80, child: Text(name)),
+          Row(
+            children: [
+              Text(
+                '₹$price',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              AppSpacing.w10,
+              Text(
+                '₹$slashedPrice',
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                    decoration: TextDecoration.lineThrough),
+              )
+            ],
+          )
+        ],
       ),
     );
   }
