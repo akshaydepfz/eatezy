@@ -1,4 +1,5 @@
 import 'package:eatezy/style/app_color.dart';
+import 'package:eatezy/view/auth/screens/login_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: const LandingScreen(),
+        home: const LoginScreen(),
       ),
     );
   }

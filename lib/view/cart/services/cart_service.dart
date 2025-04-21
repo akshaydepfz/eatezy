@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/order_model.dart';
 import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/view/cart/screens/success_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CartService extends ChangeNotifier {
@@ -96,7 +95,7 @@ class CartService extends ChangeNotifier {
           orderDeliveredTime: '',
           orderPickedTime: '',
           deliveryCharge: 0,
-          vendorId: 'ctgKyYf9rvRJZNKTdLs0');
+          vendorId: v.vendorID);
       // String fcm = await getAdminFcmToken() ?? "";
       // sendFCMMessage(fcm);
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
