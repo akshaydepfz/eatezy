@@ -30,6 +30,13 @@ class OrderModel {
   String onTheWayTime;
   String orderDeliveredTime;
   int deliveryCharge;
+  String lat;
+  String long;
+  String customerImage;
+  String vendorName;
+  String shopImage;
+  String vendorPhone;
+  String chatId;
 
   OrderModel(
       {required this.id,
@@ -62,48 +69,62 @@ class OrderModel {
       required this.orderPickedTime,
       required this.onTheWayTime,
       required this.orderDeliveredTime,
-      required this.deliveryCharge});
+      required this.deliveryCharge,
+      required this.lat,
+      required this.long,
+      required this.customerImage,
+      required this.vendorName,
+      required this.shopImage,
+      required this.vendorPhone,
+      required this.chatId});
 
   // Create a factory method to map Firestore data to ProductModel
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
-        id: id,
-        name: data['name'] ?? '',
-        image: data['image'] ?? '',
-        description: data['description'] ?? '',
-        category: data['category'] ?? '',
-        unit: data['unit'] ?? '',
-        stock: data['stock'] != null ? int.parse(data['stock'].toString()) : 0,
-        maxOrder: data['maxOrder'] != null
-            ? int.parse(data['maxOrder'].toString())
-            : 0,
-        price: data['price'] != null
-            ? (double.parse(data['price'].toString()))
-            : 0.0,
-        slashedPrice: data['slashedPrice'] != null
-            ? double.parse(data['slashedPrice'].toString())
-            : 0.0,
-        itemCount: data['itemCount'],
-        uuid: data['uuid'],
-        vendorId: data['vendor_id'],
-        createdDate: data['created_date'],
-        customerName: data['customer_name'],
-        phone: data['phone'],
-        address: data['address'],
-        isPaid: data['isPaid'],
-        orderStatus: data['order_status'],
-        deliveryBoyId: data['deliveryBoyId'] ?? '',
-        isDelivered: data['isDelivered'] ?? false,
-        isCancelled: data['isCancelled'] ?? false,
-        deliveryType: data['delivery_type'] ?? "",
-        isRated: data['is_rated'] ?? false,
-        rating: data['star'] ?? 0,
-        confimedTime: data['confrimTime'] ?? '',
-        driverGoShopTime: data['driverShop'] ?? '',
-        orderPickedTime: data['pickedTime'] ?? '',
-        onTheWayTime: data['onTheWayTime'] ?? '',
-        orderDeliveredTime: data['deliveredTime'] ?? '',
-        deliveryCharge: data['delivery_charge'] ?? 0);
+      id: id,
+      name: data['name'] ?? '',
+      image: data['image'] ?? '',
+      description: data['description'] ?? '',
+      category: data['category'] ?? '',
+      unit: data['unit'] ?? '',
+      stock: data['stock'] != null ? int.parse(data['stock'].toString()) : 0,
+      maxOrder:
+          data['maxOrder'] != null ? int.parse(data['maxOrder'].toString()) : 0,
+      price: data['price'] != null
+          ? (double.parse(data['price'].toString()))
+          : 0.0,
+      slashedPrice: data['slashedPrice'] != null
+          ? double.parse(data['slashedPrice'].toString())
+          : 0.0,
+      itemCount: data['itemCount'],
+      uuid: data['uuid'],
+      vendorId: data['vendor_id'],
+      createdDate: data['created_date'],
+      customerName: data['customer_name'],
+      phone: data['phone'],
+      address: data['address'],
+      isPaid: data['isPaid'],
+      orderStatus: data['order_status'],
+      deliveryBoyId: data['deliveryBoyId'] ?? '',
+      isDelivered: data['isDelivered'] ?? false,
+      isCancelled: data['isCancelled'] ?? false,
+      deliveryType: data['delivery_type'] ?? "",
+      isRated: data['is_rated'] ?? false,
+      rating: data['star'] ?? 0,
+      confimedTime: data['confrimTime'] ?? '',
+      driverGoShopTime: data['driverShop'] ?? '',
+      orderPickedTime: data['pickedTime'] ?? '',
+      onTheWayTime: data['onTheWayTime'] ?? '',
+      orderDeliveredTime: data['deliveredTime'] ?? '',
+      deliveryCharge: data['delivery_charge'] ?? 0,
+      lat: data['lat'] ?? '',
+      long: data['long'] ?? "",
+      customerImage: data['customer_image'] ?? "",
+      shopImage: data['shop_image'] ?? "",
+      vendorName: data['vendor_name'] ?? "",
+      chatId: data['chat_id'] ?? '',
+      vendorPhone: data['vendor_phone'] ?? "",
+    );
   } // Method to convert ProductModel to a Map
   Map<String, dynamic> toMap() {
     return {
@@ -129,7 +150,14 @@ class OrderModel {
       'isDelivered': isDelivered,
       'isCancelled': isCancelled,
       'delivery_type': deliveryType,
-      'delivery_charge': deliveryCharge
+      'delivery_charge': deliveryCharge,
+      'lat': lat,
+      'long': long,
+      'customer_image': customerImage,
+      'shop_image': customerImage,
+      'vendor_name': vendorName,
+      'vendor_phone': vendorPhone,
+      'chat_id': chatId,
     };
   }
 }

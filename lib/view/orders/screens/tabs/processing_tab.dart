@@ -30,9 +30,29 @@ class ProcessingTab extends StatelessWidget {
                   return FadeInUp(
                     duration: const Duration(milliseconds: 800),
                     child: ProcessingCard(
+                        ontrackingTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => OSMTrackingScreen(
+                                        vendorId:
+                                            p.upmcomingedOrders[index].vendorId,
+                                        chatId:
+                                            p.upmcomingedOrders[index].chatId,
+                                        vendorName: p.upmcomingedOrders[index]
+                                            .vendorName,
+                                        vendorPhone: p.upmcomingedOrders[index]
+                                            .vendorPhone,
+                                        vendorImage: p
+                                            .upmcomingedOrders[index].shopImage,
+                                        lat: double.parse(
+                                            p.upmcomingedOrders[index].lat),
+                                        long: double.parse(
+                                            p.upmcomingedOrders[index].long),
+                                        isOrder: false,
+                                      )));
+                        },
                         status: p.upmcomingedOrders[index].orderStatus,
-                        lat: 0,
-                        long: 0,
                         order: p.upmcomingedOrders[index],
                         isAccept:
                             p.upmcomingedOrders[index].orderStatus != 'Waiting',
@@ -75,9 +95,8 @@ class ProcessingCard extends StatelessWidget {
     required this.id,
     required this.isAccept,
     required this.order,
-    required this.lat,
-    required this.long,
     required this.status,
+    required this.ontrackingTap,
   });
 
   final double width;
@@ -92,9 +111,8 @@ class ProcessingCard extends StatelessWidget {
   final String id;
   final bool isAccept;
   final OrderModel order;
-  final double lat;
-  final double long;
   final String status;
+  final Function() ontrackingTap;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -249,13 +267,7 @@ class ProcessingCard extends StatelessWidget {
                       },
                     ),
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              OSMTrackingScreen(lat: lat, long: long)));
-                },
+                onTap: ontrackingTap,
                 child: Container(
                   width: width / 2.5,
                   padding: const EdgeInsets.all(8),

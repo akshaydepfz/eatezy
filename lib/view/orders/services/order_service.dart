@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/order_model.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class OrderService extends ChangeNotifier {
@@ -26,11 +25,11 @@ class OrderService extends ChangeNotifier {
 
       if (orders != null) {
         for (var item in orders!) {
-          if (item.isCancelled == false && item.isDelivered) {
+          if (item.isCancelled == false && item.orderStatus == 'Completed') {
             deliveredOrders.add(item);
             notifyListeners();
           }
-          if (!item.isDelivered && !item.isCancelled) {
+          if (item.orderStatus != 'Completed' && !item.isCancelled) {
             upmcomingedOrders.add(item);
             notifyListeners();
           }

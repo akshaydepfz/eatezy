@@ -1,6 +1,4 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:eatezy/model/product_model.dart';
-import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:flutter/material.dart';

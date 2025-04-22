@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:eatezy/style/app_color.dart';
+import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/chat/chat_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -10,7 +12,23 @@ import 'package:http/http.dart' as http;
 class OSMTrackingScreen extends StatefulWidget {
   final double lat;
   final double long;
-  const OSMTrackingScreen({super.key, required this.lat, required this.long});
+  final bool isOrder;
+  final String vendorName;
+  final String vendorImage;
+  final String vendorPhone;
+  final String chatId;
+  final String vendorId;
+
+  const OSMTrackingScreen(
+      {super.key,
+      required this.lat,
+      required this.long,
+      required this.isOrder,
+      required this.vendorName,
+      required this.vendorImage,
+      required this.vendorPhone,
+      required this.chatId,
+      required this.vendorId});
 
   @override
   State<OSMTrackingScreen> createState() => _OSMTrackingScreenState();
@@ -115,63 +133,104 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: currentLocation!,
-                    initialZoom: 16,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      userAgentPackageName: 'com.example.app',
-                    ),
-                    PolylineLayer(
-                      polylines: [
-                        Polyline(
-                          points: routePoints,
-                          color: Colors.blue,
-                          strokeWidth: 4.0,
-                        ),
-                      ],
-                    ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: currentLocation!,
-                          child: const Icon(Icons.place,
-                              size: 40, color: AppColor.primary),
-                        ),
-                        Marker(
-                          point: LatLng(widget.lat, widget.long),
-                          child: const Icon(Icons.place,
-                              size: 40, color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                // FlutterMap(
+                //   mapController: mapController,
+                //   options: MapOptions(
+                //     initialCenter: currentLocation!,
+                //     initialZoom: 16,
+                //   ),
+                //   children: [
+                //     TileLayer(
+                //       urlTemplate:
+                //           "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                //       userAgentPackageName: 'com.example.app',
+                //     ),
+                //     PolylineLayer(
+                //       polylines: [
+                //         Polyline(
+                //           points: routePoints,
+                //           color: Colors.blue,
+                //           strokeWidth: 4.0,
+                //         ),
+                //       ],
+                //     ),
+                //     MarkerLayer(
+                //       markers: [
+                //         Marker(
+                //           point: currentLocation!,
+                //           child: const Icon(Icons.place,
+                //               size: 40, color: AppColor.primary),
+                //         ),
+                //         Marker(
+                //           point: LatLng(widget.lat, widget.long),
+                //           child: const Icon(Icons.place,
+                //               size: 40, color: Colors.red),
+                //         ),
+                //       ],
+                //     ),
+                //   ],
+                // ),
               ],
             ),
       bottomSheet: Container(
+        decoration: BoxDecoration(color: AppColor.primary),
         padding: EdgeInsets.all(20),
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height * .20,
         child: Column(
           children: [
-            if (distance != null)
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                        height: 60,
+                        width: 60,
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(widget.vendorImage),
+                        )),
+                    AppSpacing.w10,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.vendorName,
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                        Text(
+                          "+91 ${widget.vendorPhone}",
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
+                        if (distance != null)
+                          Text(
+                            "Distance: ${distance!.toStringAsFixed(2)} km",
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-                child: Text(
-                  "Distance: ${distance!.toStringAsFixed(2)} km",
-                  style: const TextStyle(fontSize: 16),
+                CircleAvatar(
+                  child: Icon(Icons.call),
                 ),
-              ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatViewScreen(
+                                  chatId: widget.chatId,
+                                  vendorId: widget.vendorId,
+                                )));
+                  },
+                  child: CircleAvatar(
+                    child: Icon(Icons.chat),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),

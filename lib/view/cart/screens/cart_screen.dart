@@ -5,8 +5,19 @@ import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    Provider.of<CartService>(context, listen: false).gettVendors();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {

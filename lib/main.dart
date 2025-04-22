@@ -1,6 +1,6 @@
 import 'package:eatezy/style/app_color.dart';
-import 'package:eatezy/view/auth/screens/login_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
+import 'package:eatezy/view/chat/chat_service.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => RestuarantProvider()),
         ChangeNotifierProvider(create: (context) => CartService()),
         ChangeNotifierProvider(create: (context) => OrderService()),
+        ChangeNotifierProvider(create: (context) => ChatProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: const LoginScreen(),
+        home: const LandingScreen(),
       ),
     );
   }

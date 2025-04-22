@@ -1,0 +1,114 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ChatProvider with ChangeNotifier {
+  String userToken = "FirebaseAuth.instance.currentUser!.uid";
+
+  Future<int> getUnreadCount(String chatId) async {
+    if (userToken == null) return 0;
+
+    final messages = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('isRead', isEqualTo: false)
+        .where('senderToken', isNotEqualTo: userToken)
+        .get();
+
+    return messages.docs.length;
+  }
+
+  Future<void> sendDummyMessage() async {
+    final dummyMessage = "Hello from the other side!";
+    final timestamp = FieldValue.serverTimestamp();
+
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc('FfKvM00wNorG7OJjdK98_dummy_user')
+        .collection('messages')
+        .add({
+      'text': dummyMessage,
+      'senderToken': "other_person_token",
+      'timestamp': timestamp,
+      'isRead': false,
+    });
+
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc('FfKvM00wNorG7OJjdK98_dummy_user')
+        .update({
+      'lastMessage': dummyMessage,
+      'lastMessageTime': timestamp,
+    });
+  }
+
+  Stream<QuerySnapshot> getChatStream() {
+    if (userToken == null) {
+      return const Stream.empty();
+    }
+
+    return FirebaseFirestore.instance
+        .collection('chats')
+        .where('participants', arrayContains: userToken)
+        .orderBy('lastMessageTime', descending: true)
+        .snapshots();
+  }
+
+  Future<void> markMessagesAsRead(String chatId) async {
+    if (chatId != '') {
+      final unreadMessages = await FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('isRead', isEqualTo: false)
+          .where('senderToken', isNotEqualTo: userToken)
+          .get();
+
+      if (unreadMessages.docs.isNotEmpty) {
+        final batch = FirebaseFirestore.instance.batch();
+        for (var doc in unreadMessages.docs) {
+          batch.update(doc.reference, {'isRead': true});
+        }
+        await batch.commit();
+      }
+    }
+  }
+
+  Future<void> sendMessage(String chatId, String text) async {
+    if (text.trim().isEmpty || userToken == null) return;
+
+    final messageData = {
+      'text': text.trim(),
+      'senderToken': userToken,
+      'timestamp': FieldValue.serverTimestamp(),
+      'isRead': false,
+    };
+
+    final chatRef = FirebaseFirestore.instance.collection('chats').doc(chatId);
+
+    await chatRef.collection('messages').add(messageData);
+    await chatRef.update({
+      'lastMessage': text.trim(),
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<QuerySnapshot> getMessagesStream(String chatId, vendorId) {
+    if (chatId == '') {
+      return FirebaseFirestore.instance
+          .collection('chats')
+          .doc("FirebaseAuth.instance.currentUser!.uid$vendorId")
+          .collection('messages')
+          .orderBy('timestamp')
+          .snapshots();
+    } else {
+      return FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp')
+          .snapshots();
+    }
+  }
+}
