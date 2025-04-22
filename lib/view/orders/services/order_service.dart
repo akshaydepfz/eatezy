@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/order_model.dart';
+import 'package:eatezy/model/vendor_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,7 @@ class OrderService extends ChangeNotifier {
   List<OrderModel> deliveredOrders = [];
   List<OrderModel> upmcomingedOrders = [];
   List<OrderModel> cancellOrders = [];
+  List<VendorModel> vendors = [];
 
   Future<void> getOrders() async {
     try {
@@ -43,6 +45,27 @@ class OrderService extends ChangeNotifier {
 
       notifyListeners();
     } catch (_) {}
+  }
+
+  Future<void> gettVendors() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('vendors').get();
+      vendors = snapshot.docs.map((doc) {
+        return VendorModel.fromFirestore(
+            doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching vendor: $e');
+    }
+  }
+
+  VendorModel? findVendorById(String id) {
+    return vendors.firstWhere(
+      (vendor) => vendor.id == id,
+    );
   }
 
   Future<void> cancellOrder(BuildContext context, String id) async {

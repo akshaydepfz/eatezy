@@ -14,6 +14,7 @@ class VendorModel {
   final String estimateDistance;
   final String lat;
   final String long;
+  final String fcmToken;
 
   VendorModel({
     required this.id,
@@ -31,6 +32,7 @@ class VendorModel {
     required this.estimateDistance,
     required this.lat,
     required this.long,
+    required this.fcmToken,
   });
 
   factory VendorModel.fromFirestore(
@@ -53,8 +55,9 @@ class VendorModel {
       isActive: data['is_active'] ?? false,
       estimateDistance: estimateDistance ?? data['estimateDistance'] ?? '',
       estimateTime: estimateTime ?? data['estimateTime'] ?? '',
-      lat: data['lat'],
-      long: data['long'],
+      lat: data['lat'] ?? "",
+      long: data['long'] ?? '',
+      fcmToken: data['fcm_token'] ?? "",
     );
   }
 }

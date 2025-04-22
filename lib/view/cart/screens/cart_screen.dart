@@ -16,6 +16,7 @@ class _CartScreenState extends State<CartScreen> {
   @override
   void initState() {
     Provider.of<CartService>(context, listen: false).gettVendors();
+    Provider.of<CartService>(context, listen: false).getCustomer();
     super.initState();
   }
 

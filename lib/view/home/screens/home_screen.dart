@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Provider.of<HomeProvider>(context, listen: false).gettVendors();
     Provider.of<HomeProvider>(context, listen: false).fetchCategory();
     Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
+    Provider.of<HomeProvider>(context, listen: false).updateAdminFcmToken();
     super.initState();
   }
 

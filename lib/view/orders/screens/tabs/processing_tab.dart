@@ -35,6 +35,16 @@ class ProcessingTab extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => OSMTrackingScreen(
+                                        customerImage: p
+                                            .upmcomingedOrders[index]
+                                            .customerImage,
+                                        customerName: p.upmcomingedOrders[index]
+                                            .customerName,
+                                        vendorToken: p
+                                            .findVendorById(p
+                                                .upmcomingedOrders[index]
+                                                .vendorId)!
+                                            .fcmToken,
                                         orderID: p.upmcomingedOrders[index].id,
                                         vendorId:
                                             p.upmcomingedOrders[index].vendorId,
@@ -50,7 +60,7 @@ class ProcessingTab extends StatelessWidget {
                                             p.upmcomingedOrders[index].lat),
                                         long: double.parse(
                                             p.upmcomingedOrders[index].long),
-                                        isOrder: false,
+                                        isOrder: true,
                                       )));
                         },
                         status: p.upmcomingedOrders[index].orderStatus,

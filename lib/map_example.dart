@@ -19,6 +19,9 @@ class OSMTrackingScreen extends StatefulWidget {
   final String chatId;
   final String vendorId;
   final String orderID;
+  final String vendorToken;
+  final String customerImage;
+  final String customerName;
 
   const OSMTrackingScreen({
     super.key,
@@ -31,6 +34,9 @@ class OSMTrackingScreen extends StatefulWidget {
     required this.chatId,
     required this.vendorId,
     required this.orderID,
+    required this.vendorToken,
+    required this.customerImage,
+    required this.customerName,
   });
 
   @override
@@ -228,6 +234,9 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => ChatViewScreen(
+                                        customerImage: widget.customerImage,
+                                        customerName: widget.customerName,
+                                        vendorToken: widget.vendorToken,
                                         orderId: widget.orderID,
                                         chatId: widget.chatId,
                                         vendorId: widget.vendorId,

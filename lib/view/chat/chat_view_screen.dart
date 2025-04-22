@@ -9,11 +9,17 @@ class ChatViewScreen extends StatefulWidget {
   final String chatId;
   final String vendorId;
   final String orderId;
+  final String vendorToken;
+  final String customerName;
+  final String customerImage;
   const ChatViewScreen(
       {super.key,
       required this.chatId,
       required this.vendorId,
-      required this.orderId});
+      required this.orderId,
+      required this.vendorToken,
+      required this.customerName,
+      required this.customerImage});
 
   @override
   State<ChatViewScreen> createState() => _ChatViewScreenState();
@@ -41,6 +47,8 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
       await FirebaseFirestore.instance.collection('chats').doc(doc).set({
         'lastMessage': dummyMessage,
         "lastMessageTime": timestamp,
+        "customer_name": widget.customerName,
+        "customer_image": widget.customerImage,
         "participants": [
           widget.vendorId,
           FirebaseAuth.instance.currentUser!.uid,
@@ -57,7 +65,7 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
           .collection('messages')
           .add({
         'text': dummyMessage,
-        'senderToken': "123",
+        'senderToken': FirebaseAuth.instance.currentUser!.uid,
         'timestamp': timestamp,
         'isRead': false,
       });
@@ -77,7 +85,8 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
   }
 
   void handleSendMessage(ChatProvider provider) async {
-    await provider.sendMessage(widget.chatId, _controller.text);
+    await provider.sendMessage(
+        widget.chatId, _controller.text, widget.vendorToken);
     _controller.clear();
     scrollToBottom();
   }
@@ -130,7 +139,8 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
-                    final isMe = msg['senderToken'] == chatProvider.userToken;
+                    final isMe = msg['senderToken'] ==
+                        FirebaseAuth.instance.currentUser!.uid;
                     final time = msg['timestamp'] != null
                         ? DateFormat('hh:mm a')
                             .format(msg['timestamp'].toDate())

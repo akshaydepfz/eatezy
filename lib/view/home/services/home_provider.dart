@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/category_model.dart';
 import 'package:eatezy/model/product_model.dart';
@@ -8,6 +8,7 @@ import 'package:eatezy/view/categories/screens/categories_screen.dart';
 import 'package:eatezy/view/home/screens/home_screen.dart';
 import 'package:eatezy/view/profile/screens/profile_screen.dart';
 import 'package:eatezy/view/restaurants/screens/restaurants_list.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -83,6 +84,25 @@ class HomeProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error fetching vendors: $e');
+    }
+  }
+
+  Future<void> updateAdminFcmToken() async {
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+
+      if (token != null) {
+        await FirebaseFirestore.instance
+            .collection('customers')
+            .doc(FirebaseAuth.instance.currentUser!.uid)
+            .update({'fcm_token': token});
+
+        print('FCM token updated successfully: $token');
+      } else {
+        print('Failed to get FCM token.');
+      }
+    } catch (e) {
+      print('Error updating FCM token: $e');
     }
   }
 
