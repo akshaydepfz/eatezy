@@ -35,6 +35,7 @@ class ProcessingTab extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => OSMTrackingScreen(
+                                        orderID: p.upmcomingedOrders[index].id,
                                         vendorId:
                                             p.upmcomingedOrders[index].vendorId,
                                         chatId:

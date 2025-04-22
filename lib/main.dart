@@ -1,10 +1,13 @@
 import 'package:eatezy/style/app_color.dart';
+import 'package:eatezy/view/auth/screens/splash_screen.dart';
+import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/chat/chat_service.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +31,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => CartService()),
         ChangeNotifierProvider(create: (context) => OrderService()),
         ChangeNotifierProvider(create: (context) => ChatProvider()),
+        ChangeNotifierProvider(create: (context) => LoginSrvice()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -37,7 +41,15 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: const LandingScreen(),
+        home: StreamBuilder(
+          stream: FirebaseAuth.instance.authStateChanges(),
+          builder: (context, userSnp) {
+            if (userSnp.hasData) {
+              return const LandingScreen();
+            }
+            return const SplashScreen();
+          },
+        ),
       ),
     );
   }

@@ -1,7 +1,9 @@
+import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:provider/provider.dart';
 
 class OtpAuthScreen extends StatefulWidget {
   static String route = 'otpScreen';
@@ -15,6 +17,7 @@ class _OtpAuthScreenState extends State<OtpAuthScreen> {
   String otp = '';
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<LoginSrvice>(context);
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: SafeArea(
@@ -51,6 +54,7 @@ class _OtpAuthScreenState extends State<OtpAuthScreen> {
                     height: height * .05,
                   ),
                   PinCodeTextField(
+                    controller: provider.opController,
                     enableActiveFill: true,
                     cursorColor: Colors.green,
                     appContext: context,
@@ -79,14 +83,9 @@ class _OtpAuthScreenState extends State<OtpAuthScreen> {
                   ),
                   PrimaryButton(
                       label: 'Continue',
-                      onTap: () async {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LandingScreen()),
-                          (Route<dynamic> route) =>
-                              false, // This condition removes all previous routes.
-                        );
+                      onTap: () {
+                        provider.signInWithOTP(
+                            provider.opController.text, context);
                       }),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -142,6 +142,7 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => OSMTrackingScreen(
+                              orderID: '',
                               vendorId: '',
                               chatId: '',
                               vendorImage: widget.vendor.shopImage,

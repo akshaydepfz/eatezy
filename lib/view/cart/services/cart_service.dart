@@ -3,6 +3,7 @@ import 'package:eatezy/model/order_model.dart';
 import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/view/cart/screens/success_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CartService extends ChangeNotifier {
@@ -103,7 +104,7 @@ class CartService extends ChangeNotifier {
           price: v.price,
           slashedPrice: double.parse(v.slashedPrice),
           itemCount: v.itemCount,
-          uuid: 'FirebaseAuth.instance.currentUser!.uid',
+          uuid: FirebaseAuth.instance.currentUser!.uid,
           createdDate: DateTime.now().toString(),
           address: "",
           customerName: '',

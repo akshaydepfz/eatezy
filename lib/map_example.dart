@@ -18,17 +18,20 @@ class OSMTrackingScreen extends StatefulWidget {
   final String vendorPhone;
   final String chatId;
   final String vendorId;
+  final String orderID;
 
-  const OSMTrackingScreen(
-      {super.key,
-      required this.lat,
-      required this.long,
-      required this.isOrder,
-      required this.vendorName,
-      required this.vendorImage,
-      required this.vendorPhone,
-      required this.chatId,
-      required this.vendorId});
+  const OSMTrackingScreen({
+    super.key,
+    required this.lat,
+    required this.long,
+    required this.isOrder,
+    required this.vendorName,
+    required this.vendorImage,
+    required this.vendorPhone,
+    required this.chatId,
+    required this.vendorId,
+    required this.orderID,
+  });
 
   @override
   State<OSMTrackingScreen> createState() => _OSMTrackingScreenState();
@@ -172,68 +175,74 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                 // ),
               ],
             ),
-      bottomSheet: Container(
-        decoration: BoxDecoration(color: AppColor.primary),
-        padding: EdgeInsets.all(20),
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * .20,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                        height: 60,
-                        width: 60,
-                        child: CircleAvatar(
-                          backgroundImage: NetworkImage(widget.vendorImage),
-                        )),
-                    AppSpacing.w10,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.vendorName,
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                        Text(
-                          "+91 ${widget.vendorPhone}",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                        if (distance != null)
-                          Text(
-                            "Distance: ${distance!.toStringAsFixed(2)} km",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
+      bottomSheet: widget.isOrder
+          ? Container(
+              decoration: BoxDecoration(color: AppColor.primary),
+              padding: EdgeInsets.all(20),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * .20,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          SizedBox(
+                              height: 60,
+                              width: 60,
+                              child: CircleAvatar(
+                                backgroundImage:
+                                    NetworkImage(widget.vendorImage),
+                              )),
+                          AppSpacing.w10,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.vendorName,
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                              Text(
+                                "+91 ${widget.vendorPhone}",
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                              if (distance != null)
+                                Text(
+                                  "Distance: ${distance!.toStringAsFixed(2)} km",
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                  ],
-                ),
-                CircleAvatar(
-                  child: Icon(Icons.call),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => ChatViewScreen(
-                                  chatId: widget.chatId,
-                                  vendorId: widget.vendorId,
-                                )));
-                  },
-                  child: CircleAvatar(
-                    child: Icon(Icons.chat),
-                  ),
-                ),
-              ],
+                        ],
+                      ),
+                      CircleAvatar(
+                        child: Icon(Icons.call),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChatViewScreen(
+                                        orderId: widget.orderID,
+                                        chatId: widget.chatId,
+                                        vendorId: widget.vendorId,
+                                      )));
+                        },
+                        child: CircleAvatar(
+                          child: Icon(Icons.chat),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             )
-          ],
-        ),
-      ),
+          : null,
     );
   }
 }

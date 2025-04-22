@@ -1,13 +1,16 @@
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/auth/screens/otp_screen.dart';
+import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<LoginSrvice>(context);
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -18,7 +21,7 @@ class LoginScreen extends StatelessWidget {
               const Align(
                 alignment: Alignment.topLeft,
                 child: Text(
-                  'Premium hotel pickups\njust a tap away.',
+                  'Premium Restaurant pickups\njust a tap away.',
                   style: TextStyle(fontSize: 22),
                 ),
               ),
@@ -36,6 +39,7 @@ class LoginScreen extends StatelessWidget {
                     const SizedBox(height: 30, child: VerticalDivider()),
                     Expanded(
                       child: TextField(
+                        controller: provider.mobileController,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
@@ -73,7 +77,7 @@ class LoginScreen extends StatelessWidget {
               // Align(
               //   alignment: Alignment.bottomRight,
               //   child: TextButton(
-              //       onPressed: () {},
+              //       onPressed: () {,
               //       child: const Text(
               //         'Forgot Password?',
               //         style: TextStyle(color: AppColor.primary),
@@ -81,12 +85,10 @@ class LoginScreen extends StatelessWidget {
               // ),
               AppSpacing.h20,
               PrimaryButton(
+                  isLoading: provider.isLoading,
                   label: 'Continue',
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => OtpAuthScreen()));
+                    provider.verifyPhoneNumber(context);
                   }),
               AppSpacing.h15, Spacer(),
             ],

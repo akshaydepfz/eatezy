@@ -33,7 +33,7 @@ class SplashScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      'Book, track, and pick up your hotel orders.',
+                      'Book, track, and pick up your Restaurant orders.',
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/order_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class OrderService extends ChangeNotifier {
@@ -16,7 +17,7 @@ class OrderService extends ChangeNotifier {
       cancellOrders.clear();
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('cart')
-          .where('uuid', isEqualTo: "FirebaseAuth.instance.currentUser!.uid")
+          .where('uuid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
           .get();
       orders = snapshot.docs.map((doc) {
         return OrderModel.fromFirestore(

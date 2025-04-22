@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatProvider with ChangeNotifier {
-  String userToken = "FirebaseAuth.instance.currentUser!.uid";
+  String userToken = FirebaseAuth.instance.currentUser!.uid;
 
   Future<int> getUnreadCount(String chatId) async {
     if (userToken == null) return 0;
@@ -98,7 +98,7 @@ class ChatProvider with ChangeNotifier {
     if (chatId == '') {
       return FirebaseFirestore.instance
           .collection('chats')
-          .doc("FirebaseAuth.instance.currentUser!.uid$vendorId")
+          .doc("${FirebaseAuth.instance.currentUser!.uid}$vendorId")
           .collection('messages')
           .orderBy('timestamp')
           .snapshots();

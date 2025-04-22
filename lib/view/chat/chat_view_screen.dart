@@ -8,8 +8,12 @@ import 'package:intl/intl.dart';
 class ChatViewScreen extends StatefulWidget {
   final String chatId;
   final String vendorId;
+  final String orderId;
   const ChatViewScreen(
-      {super.key, required this.chatId, required this.vendorId});
+      {super.key,
+      required this.chatId,
+      required this.vendorId,
+      required this.orderId});
 
   @override
   State<ChatViewScreen> createState() => _ChatViewScreenState();
@@ -31,16 +35,22 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
     if (widget.chatId == '') {
       final dummyMessage = "Hello!";
       final timestamp = FieldValue.serverTimestamp();
-      String doc = "FirebaseAuth.instance.currentUser!.uid${widget.vendorId}";
+      String doc =
+          "${FirebaseAuth.instance.currentUser!.uid}${widget.vendorId}";
 
       await FirebaseFirestore.instance.collection('chats').doc(doc).set({
         'lastMessage': dummyMessage,
         "lastMessageTime": timestamp,
         "participants": [
           widget.vendorId,
-          "FirebaseAuth.instance.currentUser!.uid"
+          FirebaseAuth.instance.currentUser!.uid,
         ]
       });
+
+      await FirebaseFirestore.instance
+          .collection('cart')
+          .doc(widget.orderId)
+          .update({"chat_id": doc});
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(doc)
