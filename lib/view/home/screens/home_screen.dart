@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             children: [
                               Hero(
-                                tag: '12',
+                                tag: p.category![index].name,
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
                                   child: SizedBox(

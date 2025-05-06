@@ -63,7 +63,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Hero(
-                              tag: '12',
+                              tag: p.category![index].name,
                               child: SizedBox(
                                   height: 80,
                                   width: 80,

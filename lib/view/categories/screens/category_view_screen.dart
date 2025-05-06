@@ -44,7 +44,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
             child: Row(
               children: [
                 Hero(
-                  tag: '12',
+                  tag: widget.category,
                   child: SizedBox(
                     height: 100,
                     width: 100,
