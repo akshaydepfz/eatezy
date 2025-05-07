@@ -9,7 +9,6 @@ import 'package:eatezy/view/it_park/services/it_service.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
-import 'package:eatezy/walkthrough_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';

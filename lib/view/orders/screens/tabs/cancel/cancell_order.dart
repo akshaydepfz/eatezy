@@ -22,6 +22,7 @@ class _CancelOrderState extends State<CancelOrder> {
     final provider = Provider.of<OrderService>(context);
 
     return Scaffold(
+      appBar: AppBar(),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15),
@@ -29,9 +30,6 @@ class _CancelOrderState extends State<CancelOrder> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(
-                  height: 16,
-                ),
                 ListView.builder(
                     shrinkWrap: true,
                     itemCount: cancelSnap.length,

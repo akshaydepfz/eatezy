@@ -19,26 +19,27 @@ class CancelledTab extends StatelessWidget {
                 const Text('No Cancelled Orders Found!'),
               ],
             )
-          : RefreshIndicator(
-              onRefresh: () => p.getOrders(),
-              child: ListView.builder(
-                itemCount: p.cancellOrders.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return FadeInUp(
-                    duration: const Duration(milliseconds: 800),
-                    child: CancelledCard(
-                      height: height,
-                      width: width,
-                      hotel: p.cancellOrders[index].itemCount.toString(),
-                      image: p.cancellOrders[index].image,
-                      name: p.cancellOrders[index].name,
-                      price: p.cancellOrders[index].price.toString(),
-                    ),
-                  );
-                },
-              ),
-            );
+          : SizedBox();
+      // : RefreshIndicator(
+      //     onRefresh: () => p.getOrders(),
+      //     child: ListView.builder(
+      //       itemCount: p.cancellOrders.length,
+      //       shrinkWrap: true,
+      //       itemBuilder: (context, index) {
+      //         return FadeInUp(
+      //           duration: const Duration(milliseconds: 800),
+      //           child: CancelledCard(
+      //             height: height,
+      //             width: width,
+      //             hotel: p.cancellOrders[index].itemCount.toString(),
+      //             image: p.cancellOrders[index].image,
+      //             name: p.cancellOrders[index].name,
+      //             price: p.cancellOrders[index].price.toString(),
+      //           ),
+      //         );
+      //       },
+      //     ),
+      //   );
     });
   }
 }

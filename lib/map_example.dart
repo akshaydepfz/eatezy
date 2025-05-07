@@ -142,43 +142,43 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
-                // FlutterMap(
-                //   mapController: mapController,
-                //   options: MapOptions(
-                //     initialCenter: currentLocation!,
-                //     initialZoom: 16,
-                //   ),
-                //   children: [
-                //     TileLayer(
-                //       urlTemplate:
-                //           "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                //       userAgentPackageName: 'com.example.app',
-                //     ),
-                //     PolylineLayer(
-                //       polylines: [
-                //         Polyline(
-                //           points: routePoints,
-                //           color: Colors.blue,
-                //           strokeWidth: 4.0,
-                //         ),
-                //       ],
-                //     ),
-                //     MarkerLayer(
-                //       markers: [
-                //         Marker(
-                //           point: currentLocation!,
-                //           child: const Icon(Icons.place,
-                //               size: 40, color: AppColor.primary),
-                //         ),
-                //         Marker(
-                //           point: LatLng(widget.lat, widget.long),
-                //           child: const Icon(Icons.place,
-                //               size: 40, color: Colors.red),
-                //         ),
-                //       ],
-                //     ),
-                //   ],
-                // ),
+                FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: currentLocation!,
+                    initialZoom: 16,
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      userAgentPackageName: 'com.example.app',
+                    ),
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: routePoints,
+                          color: Colors.blue,
+                          strokeWidth: 4.0,
+                        ),
+                      ],
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: currentLocation!,
+                          child: const Icon(Icons.place,
+                              size: 40, color: AppColor.primary),
+                        ),
+                        Marker(
+                          point: LatLng(widget.lat, widget.long),
+                          child: const Icon(Icons.place,
+                              size: 40, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ],
             ),
       bottomSheet: widget.isOrder
@@ -188,6 +188,7 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height * .20,
               child: Column(
+                mainAxisSize: MainAxisSize.min, // ✅ Fix for unbounded height
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,7 +248,7 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                         ),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             )

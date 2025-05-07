@@ -19,31 +19,32 @@ class DeliveryTab extends StatelessWidget {
           ? Center(
               child: const Text('No Orders Found!'),
             )
-          : RefreshIndicator(
-              onRefresh: () => p.getOrders(),
-              child: ListView.builder(
-                itemCount: p.deliveredOrders.length,
-                shrinkWrap: true,
-                itemBuilder: (context, i) {
-                  return FadeInUp(
-                    duration: const Duration(milliseconds: 800),
-                    child: DeliveryCard(
-                      isRated: p.deliveredOrders[i].isRated,
-                      rating: p.deliveredOrders[i].rating,
-                      onReviewTap: () {
-                        p.showReviewDialog(context, p.deliveredOrders[i].id);
-                      },
-                      width: width,
-                      height: height,
-                      hotel: p.deliveredOrders[i].itemCount.toString(),
-                      image: p.deliveredOrders[i].image,
-                      name: p.deliveredOrders[i].name,
-                      price: p.deliveredOrders[i].price.toString(),
-                    ),
-                  );
-                },
-              ),
-            );
+          : SizedBox();
+      // : RefreshIndicator(
+      //     onRefresh: () => p.getOrders(),
+      //     child: ListView.builder(
+      //       itemCount: p.deliveredOrders.length,
+      //       shrinkWrap: true,
+      //       itemBuilder: (context, i) {
+      //         return FadeInUp(
+      //           duration: const Duration(milliseconds: 800),
+      //           child: DeliveryCard(
+      //             isRated: p.deliveredOrders[i].isRated,
+      //             rating: p.deliveredOrders[i].rating,
+      //             onReviewTap: () {
+      //               p.showReviewDialog(context, p.deliveredOrders[i].id);
+      //             },
+      //             width: width,
+      //             height: height,
+      //             hotel: p.deliveredOrders[i].itemCount.toString(),
+      //             image: p.deliveredOrders[i].image,
+      //             name: p.deliveredOrders[i].name,
+      //             price: p.deliveredOrders[i].price.toString(),
+      //           ),
+      //         );
+      //       },
+      //     ),
+      //   );
     });
   }
 }

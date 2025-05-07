@@ -38,18 +38,6 @@ class _CartScreenState extends State<CartScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'KFC',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                          onPressed: () {}, icon: Icon(Icons.arrow_forward))
-                    ],
-                  ),
                   ListView.separated(
                       shrinkWrap: true,
                       separatorBuilder: (context, index) => Divider(),
@@ -71,18 +59,23 @@ class _CartScreenState extends State<CartScreen> {
                   AppSpacing.h20,
                   Align(
                     alignment: Alignment.topRight,
-                    child: Container(
-                      width: 150,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(6),
-                          color: Colors.grey.shade300),
-                      padding: EdgeInsets.all(5),
-                      child: Row(
-                        children: [
-                          Icon(Icons.add),
-                          AppSpacing.w5,
-                          Text('Add more items')
-                        ],
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        width: 150,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            color: Colors.grey.shade300),
+                        padding: EdgeInsets.all(5),
+                        child: Row(
+                          children: [
+                            Icon(Icons.add),
+                            AppSpacing.w5,
+                            Text('Add more items')
+                          ],
+                        ),
                       ),
                     ),
                   ),

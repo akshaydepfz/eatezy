@@ -8,6 +8,7 @@ import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -422,9 +423,27 @@ class ProductCard extends StatelessWidget {
                 height: 100,
                 width: 100,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    image: DecorationImage(
-                        image: NetworkImage(image), fit: BoxFit.cover)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Image.network(
+                  image,
+                  errorBuilder: (context, error, stackTrace) {
+                    return LottieBuilder.asset(
+                      'assets/lottie/load.json',
+                      fit: BoxFit.cover,
+                    );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return child;
+                    } else {
+                      return LottieBuilder.asset(
+                        'assets/lottie/load.json',
+                        fit: BoxFit.cover,
+                      );
+                    }
+                  },
+                ),
               ),
               Positioned(
                 bottom: 10,

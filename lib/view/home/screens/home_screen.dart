@@ -7,9 +7,11 @@ import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
+import 'package:eatezy/view/search/screens/search_screen.dart';
 import 'package:eatezy/view/top_dish/screens/top_dish_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -35,6 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<HomeProvider>(context);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -93,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 AppSpacing.h20,
                 TextField(
+                  readOnly: true,
                   decoration: InputDecoration(
                     prefixIcon: Icon(Icons.search),
                     hintText: "Search Eatezy",
@@ -103,6 +108,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     contentPadding: EdgeInsets.only(top: 5),
                   ),
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SearchScreen()));
+                  },
                 ),
                 AppSpacing.h20,
                 Text(
@@ -179,7 +190,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                       height: 60,
                                       width: 60,
                                       child: Image.network(
-                                          p.category![index].image)),
+                                        p.category![index].image,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return LottieBuilder.asset(
+                                            'assets/lottie/load.json',
+                                            fit: BoxFit.cover,
+                                          );
+                                        },
+                                        loadingBuilder:
+                                            (context, child, loadingProgress) {
+                                          if (loadingProgress == null) {
+                                            return child;
+                                          } else {
+                                            return LottieBuilder.asset(
+                                              'assets/lottie/load.json',
+                                              fit: BoxFit.cover,
+                                            );
+                                          }
+                                        },
+                                      )),
                                 ),
                               ),
                               AppSpacing.h5,
@@ -201,7 +232,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                     IconButton(
-                        onPressed: () {}, icon: Icon(Icons.arrow_forward))
+                        onPressed: () {
+                          provider.onSelectedChange(2);
+                        },
+                        icon: Icon(Icons.arrow_forward))
                   ],
                 ),
                 AppSpacing.h10,
@@ -258,7 +292,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
                     IconButton(
-                        onPressed: () {}, icon: Icon(Icons.arrow_forward))
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => TopDishScreen()));
+                        },
+                        icon: Icon(Icons.arrow_forward))
                   ],
                 ),
                 AppSpacing.h10,
@@ -362,7 +402,27 @@ class TopDishCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
-                  height: 100, width: 100, child: Image.network(image)),
+                  height: 100,
+                  width: 100,
+                  child: Image.network(
+                    image,
+                    errorBuilder: (context, error, stackTrace) {
+                      return LottieBuilder.asset(
+                        'assets/lottie/load.json',
+                        fit: BoxFit.cover,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return LottieBuilder.asset(
+                          'assets/lottie/load.json',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    },
+                  )),
             ),
             AppSpacing.h5,
             SizedBox(
@@ -425,6 +485,22 @@ class RestuarantCard extends StatelessWidget {
                   child: Image.network(
                     image,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return LottieBuilder.asset(
+                        'assets/lottie/load.json',
+                        fit: BoxFit.cover,
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return LottieBuilder.asset(
+                          'assets/lottie/load.json',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    },
                   )),
             ),
             AppSpacing.h5,

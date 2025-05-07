@@ -15,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
     final provider = Provider.of<ProfileService>(context);
     return Scaffold(
       body: provider.customer == null
-          ? CircularProgressIndicator()
+          ? Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(15.0),

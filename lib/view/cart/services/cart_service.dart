@@ -110,52 +110,68 @@ class CartService extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
 
-    for (var v in selectedProduct) {
+    // Group products by vendor
+    Map<String, List<ProductModel>> productsByVendor = {};
+    for (var product in selectedProduct) {
+      productsByVendor.putIfAbsent(product.vendorID, () => []).add(product);
+    }
+
+    for (var entry in productsByVendor.entries) {
+      String vendorId = entry.key;
+      List<ProductModel> products = entry.value;
+
+      List<OrderedProduct> orderedProducts = products.map((p) {
+        return OrderedProduct(
+          name: p.name,
+          image: p.image,
+          description: p.description,
+          quantity: p.itemCount,
+          price: p.price,
+          unit: p.unit,
+        );
+      }).toList();
+
       OrderModel order = OrderModel(
-          isRated: false,
-          rating: 0,
-          deliveryType: '',
-          id: v.id,
-          name: v.name,
-          image: v.image,
-          description: v.description,
-          category: v.category,
-          unit: v.unit,
-          stock: v.stock,
-          maxOrder: v.maxOrder,
-          price: v.price,
-          slashedPrice: double.parse(v.slashedPrice),
-          itemCount: v.itemCount,
-          uuid: FirebaseAuth.instance.currentUser!.uid,
-          createdDate: DateTime.now().toString(),
-          address: customer!.address,
-          customerName: customer!.name,
-          phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
-          isPaid: false,
-          orderStatus: 'Waiting',
-          deliveryBoyId: '',
-          isDelivered: false,
-          isCancelled: false,
-          confimedTime: '',
-          driverGoShopTime: '',
-          onTheWayTime: '',
-          orderDeliveredTime: '',
-          orderPickedTime: '',
-          lat: findVendorById(v.vendorID)!.lat,
-          long: findVendorById(v.vendorID)!.long,
-          deliveryCharge: 0,
-          vendorId: v.vendorID,
-          customerImage: customer!.image,
-          shopImage: findVendorById(v.vendorID)!.shopImage,
-          vendorName: findVendorById(v.vendorID)!.shopName,
-          vendorPhone: findVendorById(v.vendorID)!.phone,
-          chatId: '');
-      // String fcm = await getAdminFcmToken() ?? "";
-      sendFCMMessage(findVendorById(v.vendorID)!.fcmToken);
+        id: UniqueKey().toString(), // or use uuid package
+        uuid: FirebaseAuth.instance.currentUser!.uid,
+        vendorId: vendorId,
+        createdDate: DateTime.now().toString(),
+        address: '',
+        customerName: customer!.name,
+        phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
+        isPaid: false,
+        orderStatus: 'Waiting',
+        deliveryBoyId: '',
+        isDelivered: false,
+        isCancelled: false,
+        deliveryType: '',
+        isRated: false,
+        rating: 0,
+        confimedTime: '',
+        driverGoShopTime: '',
+        orderPickedTime: '',
+        onTheWayTime: '',
+        orderDeliveredTime: '',
+        deliveryCharge: 0,
+        lat: findVendorById(vendorId)!.lat,
+        long: findVendorById(vendorId)!.long,
+        customerImage: customer!.image,
+        vendorName: findVendorById(vendorId)!.shopName,
+        shopImage: findVendorById(vendorId)!.shopImage,
+        vendorPhone: findVendorById(vendorId)!.phone,
+        chatId: '',
+        products: orderedProducts,
+      );
+
+      sendFCMMessage(findVendorById(vendorId)!.fcmToken);
+
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
+
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => SuccessScreen()));
+      context,
+      MaterialPageRoute(builder: (context) => SuccessScreen()),
+    );
   }
 
   Future<String> getAccessToken() async {
