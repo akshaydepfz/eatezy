@@ -1,4 +1,5 @@
 import 'package:eatezy/style/app_color.dart';
+import 'package:eatezy/view/auth/screens/login_screen.dart';
 import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/chat/chat_service.dart';
@@ -6,6 +7,7 @@ import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/it_park/services/it_service.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
+import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:eatezy/walkthrough_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -72,6 +74,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => ChatProvider()),
         ChangeNotifierProvider(create: (context) => LoginSrvice()),
         ChangeNotifierProvider(create: (context) => ItService()),
+        ChangeNotifierProvider(create: (context) => ProfileService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -85,9 +88,9 @@ class MyApp extends StatelessWidget {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, userSnp) {
             if (userSnp.hasData) {
-              return const WalkthroughScreen();
+              return const LandingScreen();
             }
-            return const LandingScreen();
+            return const LoginScreen();
           },
         ),
       ),

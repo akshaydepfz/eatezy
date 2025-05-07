@@ -5,6 +5,7 @@ import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/categories/screens/category_view_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
+import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:eatezy/view/top_dish/screens/top_dish_screen.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Provider.of<HomeProvider>(context, listen: false).fetchCategory();
     Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
     Provider.of<HomeProvider>(context, listen: false).updateAdminFcmToken();
+    Provider.of<ProfileService>(context, listen: false).getCustomer();
     super.initState();
   }
 

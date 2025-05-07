@@ -7,6 +7,8 @@ class ItParkModel {
   final double long;
   final bool isActive;
   final String lastEdited;
+  final String estimateDistance; // in km, e.g. "5.30 km"
+  final String estimateTime; // e.g. "8 mins"
 
   ItParkModel({
     required this.id,
@@ -17,11 +19,18 @@ class ItParkModel {
     required this.long,
     required this.isActive,
     required this.lastEdited,
+    required this.estimateDistance,
+    required this.estimateTime,
   });
 
-  factory ItParkModel.fromFirestore(Map<String, dynamic> data, String id) {
+  factory ItParkModel.fromFirestore(
+    Map<String, dynamic> data,
+    String docId,
+    String estimateDistance,
+    String estimateTime,
+  ) {
     return ItParkModel(
-      id: data['id'] ?? "",
+      id: data['id'] ?? docId,
       name: data['name'] ?? "",
       image: data['image'] ?? "",
       createdAt: data['createdAt']?.toString() ?? "",
@@ -29,6 +38,8 @@ class ItParkModel {
       long: (data['long'] ?? 0).toDouble(),
       isActive: data['is_active'] ?? false,
       lastEdited: data['lastEdited']?.toString() ?? "",
+      estimateDistance: estimateDistance,
+      estimateTime: estimateTime,
     );
   }
 
@@ -42,6 +53,8 @@ class ItParkModel {
       'long': long,
       'is_active': isActive,
       'lastEdited': lastEdited,
+      'estimateDistance': estimateDistance,
+      'estimateTime': estimateTime,
     };
   }
 }

@@ -1,3 +1,4 @@
+import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
@@ -92,7 +93,7 @@ class PrimaryTextField extends StatelessWidget {
             enabledBorder:
                 OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
             focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.deepOrange)),
+                borderSide: BorderSide(color: AppColor.primary)),
             disabledBorder:
                 OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
           ),

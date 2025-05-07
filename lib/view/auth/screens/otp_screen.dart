@@ -82,6 +82,7 @@ class _OtpAuthScreenState extends State<OtpAuthScreen> {
                     height: height * .05,
                   ),
                   PrimaryButton(
+                      isLoading: provider.isLoading,
                       label: 'Continue',
                       onTap: () {
                         provider.signInWithOTP(

@@ -33,7 +33,7 @@ class TopDishScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '🍽️ Top Delivery Champions',
+                      '🍽️ Top Takeaway Champions',
                       style: TextStyle(fontSize: 25, color: Colors.white),
                     ),
                     Text(
