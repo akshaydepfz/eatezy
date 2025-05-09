@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:eatezy/model/banner_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/category_model.dart';
@@ -21,7 +22,7 @@ class HomeProvider extends ChangeNotifier {
   List<CategoryModel>? category;
   bool _isLoading = false;
   int get selectedIndex => _selectedIndex;
-
+  List<BannerModel> banners = [];
   String get address => _address;
 
   void onSelectedChange(int i) {
@@ -84,6 +85,20 @@ class HomeProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error fetching vendors: $e');
+    }
+  }
+
+  Future<void> fetchBanners() async {
+    try {
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('banners').get();
+
+      for (var doc in querySnapshot.docs) {
+        banners.add(BannerModel.fromJson(doc.data() as Map<String, dynamic>));
+      }
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching categories: $e');
     }
   }
 

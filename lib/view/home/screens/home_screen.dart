@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
     Provider.of<HomeProvider>(context, listen: false).updateAdminFcmToken();
     Provider.of<ProfileService>(context, listen: false).getCustomer();
+    Provider.of<HomeProvider>(context, listen: false).fetchBanners();
     super.initState();
   }
 
@@ -343,30 +344,47 @@ class _HomeScreenState extends State<HomeScreen> {
                   }),
                 ),
                 AppSpacing.h20,
-                CarouselSlider.builder(
-                  itemCount: 1,
-                  itemBuilder: (context, i, l) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        image: DecorationImage(
-                            image: AssetImage('assets/images/banner.png'),
-                            fit: BoxFit.cover),
-                        borderRadius: BorderRadius.circular(10),
+                Consumer<HomeProvider>(builder: (context, p, _) {
+                  if (p.banners.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(12)),
+                            width: MediaQuery.of(context).size.width,
+                            height: 120,
+                          ),
+                        ),
                       ),
-
-                      height: 170, // Match the carousel height
-                      width: MediaQuery.of(context).size.width,
                     );
-                  },
-                  options: CarouselOptions(
-                    viewportFraction: 1,
-                    aspectRatio: 1.0,
-                    autoPlay: true,
-                    initialPage: 0,
-                    height: 170,
-                  ),
-                ),
+                  }
+                  return CarouselSlider.builder(
+                    itemCount: p.banners.length,
+                    itemBuilder: (context, i, l) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          image: DecorationImage(
+                              image: NetworkImage(p.banners[i].image),
+                              fit: BoxFit.cover),
+                        ),
+                        height: 60,
+                        width: MediaQuery.of(context).size.width,
+                      );
+                    },
+                    options: CarouselOptions(
+                        viewportFraction: 1,
+                        aspectRatio: 1.0,
+                        autoPlay: true,
+                        initialPage: 0,
+                        height: 150),
+                  );
+                }),
               ],
             ),
           ),
