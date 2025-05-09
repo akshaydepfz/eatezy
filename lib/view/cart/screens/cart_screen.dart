@@ -1,5 +1,6 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/view/auth/screens/customer_profile_add_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     Provider.of<CartService>(context, listen: false).gettVendors();
     Provider.of<CartService>(context, listen: false).getCustomer();
+    Provider.of<CartService>(context, listen: false).fetchCoupons();
     super.initState();
   }
 
@@ -84,6 +86,57 @@ class _CartScreenState extends State<CartScreen> {
               ),
             ),
             AppSpacing.h10,
+            GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Container(
+                          padding: EdgeInsets.all(15),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Enter Your Coupon Code',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: AppColor.primary,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              AppSpacing.h10,
+                              PrimaryTextField(
+                                  title: 'Enter Coupon',
+                                  controller: provider.couponController),
+                              AppSpacing.h15,
+                              PrimaryButton(
+                                  label: 'Apply',
+                                  onTap: () => provider.applyCoupon(context))
+                            ],
+                          ),
+                        ));
+              },
+              child: Container(
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        SizedBox(
+                            height: 25,
+                            width: 25,
+                            child: Image.asset('assets/icons/discount.png')),
+                        AppSpacing.w10,
+                        Text('Apply Coupon'),
+                      ],
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded)
+                  ],
+                ),
+              ),
+            ),
+            AppSpacing.h10,
             Container(
               width: MediaQuery.of(context).size.width,
               padding: EdgeInsets.all(10),
@@ -112,6 +165,26 @@ class _CartScreenState extends State<CartScreen> {
                     ],
                   ),
                   AppSpacing.h10,
+                  if (provider.selectedCoupon != null)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Coupon Discount',
+                          style: TextStyle(fontSize: 15, color: Colors.green),
+                        ),
+                        Text(
+                          provider.getDiscountAmount(
+                              provider.getTotalAmount(0, 0),
+                              double.parse(provider.selectedCoupon.toString())),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: Colors.green),
+                        ),
+                      ],
+                    ),
+                  AppSpacing.h10,
                   Divider(color: Colors.grey.shade200),
                   AppSpacing.h10,
                   Row(
@@ -123,7 +196,7 @@ class _CartScreenState extends State<CartScreen> {
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '₹${provider.getTotalAmount(0, 0)}',
+                        '₹${provider.getTotalAmount(0, provider.selectedCoupon)}',
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 15),
                       ),

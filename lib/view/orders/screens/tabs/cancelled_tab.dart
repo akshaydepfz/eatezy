@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -9,8 +8,6 @@ class CancelledTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
     return Consumer<OrderService>(builder: (context, p, _) {
       return p.cancellOrders.isEmpty
           ? Column(

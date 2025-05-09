@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eatezy/model/coupon_model.dart';
 import 'package:eatezy/model/customer_model.dart';
 import 'package:eatezy/model/order_model.dart';
 import 'package:eatezy/model/product_model.dart';
@@ -16,6 +17,10 @@ class CartService extends ChangeNotifier {
   List<ProductModel> selectedProduct = [];
   List<VendorModel> vendors = [];
   CustomerModel? customer;
+  List<CouponModel>? coupon;
+  int? selectedCoupon;
+
+  TextEditingController couponController = TextEditingController();
 
   Future<void> gettVendors() async {
     try {
@@ -30,6 +35,21 @@ class CartService extends ChangeNotifier {
     } catch (e) {
       print('Error fetching vendor: $e');
     }
+  }
+
+  Future<void> fetchCoupons() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('coupons').get();
+
+      coupon = snapshot.docs.map((doc) {
+        return CouponModel.fromFirestore(
+            doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+      notifyListeners();
+
+      print(coupon!.first.code);
+    } catch (_) {}
   }
 
   VendorModel? findVendorById(String id) {
@@ -74,6 +94,62 @@ class CartService extends ChangeNotifier {
       selectedProduct.removeAt(index);
     }
 
+    notifyListeners();
+  }
+
+  void applyCoupon(BuildContext context) async {
+    final couponCode = couponController.text.trim();
+
+    if (couponCode.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid coupon code')),
+      );
+      return;
+    }
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('coupons')
+          .where('code', isEqualTo: couponCode)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        couponController.clear();
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid coupon code')),
+        );
+      } else {
+        final couponData = querySnapshot.docs.first.data();
+        final percentage = couponData['discount'];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Coupon applied! Discount: $percentage%'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        onCouponSelected(int.parse(percentage.toString()));
+
+        couponController.clear();
+        Navigator.pop(context);
+        // Do something with the discount percentage (e.g., apply to price)
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error applying coupon: ${e.toString()}')),
+      );
+    }
+  }
+
+  String getDiscountAmount(double totalAmount, double discountPercent) {
+    double discount = totalAmount * discountPercent / 100;
+    return '-₹${discount.toStringAsFixed(2)}';
+  }
+
+  void onCouponSelected(int coupon) {
+    selectedCoupon = coupon;
     notifyListeners();
   }
 
@@ -132,41 +208,47 @@ class CartService extends ChangeNotifier {
       }).toList();
 
       OrderModel order = OrderModel(
-        id: UniqueKey().toString(), // or use uuid package
-        uuid: FirebaseAuth.instance.currentUser!.uid,
-        vendorId: vendorId,
-        createdDate: DateTime.now().toString(),
-        address: '',
-        customerName: customer!.name,
-        phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
-        isPaid: false,
-        orderStatus: 'Waiting',
-        deliveryBoyId: '',
-        isDelivered: false,
-        isCancelled: false,
-        deliveryType: '',
-        isRated: false,
-        rating: 0,
-        confimedTime: '',
-        driverGoShopTime: '',
-        orderPickedTime: '',
-        onTheWayTime: '',
-        orderDeliveredTime: '',
-        deliveryCharge: 0,
-        lat: findVendorById(vendorId)!.lat,
-        long: findVendorById(vendorId)!.long,
-        customerImage: customer!.image,
-        vendorName: findVendorById(vendorId)!.shopName,
-        shopImage: findVendorById(vendorId)!.shopImage,
-        vendorPhone: findVendorById(vendorId)!.phone,
-        chatId: '',
-        products: orderedProducts,
-      );
+          id: UniqueKey().toString(), // or use uuid package
+          uuid: FirebaseAuth.instance.currentUser!.uid,
+          vendorId: vendorId,
+          createdDate: DateTime.now().toString(),
+          address: '',
+          customerName: customer!.name,
+          phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
+          isPaid: false,
+          orderStatus: 'Waiting',
+          deliveryBoyId: '',
+          isDelivered: false,
+          isCancelled: false,
+          deliveryType: '',
+          isRated: false,
+          rating: 0,
+          confimedTime: '',
+          driverGoShopTime: '',
+          orderPickedTime: '',
+          onTheWayTime: '',
+          orderDeliveredTime: '',
+          deliveryCharge: 0,
+          lat: findVendorById(vendorId)!.lat,
+          long: findVendorById(vendorId)!.long,
+          customerImage: customer!.image,
+          vendorName: findVendorById(vendorId)!.shopName,
+          shopImage: findVendorById(vendorId)!.shopImage,
+          vendorPhone: findVendorById(vendorId)!.phone,
+          chatId: '',
+          products: orderedProducts,
+          discount: selectedCoupon.toString());
 
       sendFCMMessage(findVendorById(vendorId)!.fcmToken);
 
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
+
+    isLoading = false;
+    selectedCoupon = null;
+    couponController.text;
+    selectedProduct.clear();
+    notifyListeners();
 
     Navigator.push(
       context,
