@@ -229,6 +229,7 @@ class CartService extends ChangeNotifier {
           onTheWayTime: '',
           orderDeliveredTime: '',
           deliveryCharge: 0,
+          totalPrice: getTotalAmount(0, 0).toString(),
           lat: findVendorById(vendorId)!.lat,
           long: findVendorById(vendorId)!.long,
           customerImage: customer!.image,

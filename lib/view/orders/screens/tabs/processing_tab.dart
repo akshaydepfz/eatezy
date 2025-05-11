@@ -149,6 +149,9 @@ class ProcessingTab extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) => OSMTrackingScreen(
+                                              orderStatus: p
+                                                  .upmcomingedOrders[index]
+                                                  .orderStatus,
                                               customerImage: p
                                                   .upmcomingedOrders[index]
                                                   .customerImage,
@@ -206,65 +209,6 @@ class ProcessingTab extends StatelessWidget {
                       ],
                     ),
                   );
-                  // return FadeInUp(
-                  //   duration: const Duration(milliseconds: 800),
-                  //   child: ProcessingCard(
-                  //       ontrackingTap: () {
-                  // Navigator.push(
-                  //     context,
-                  //     MaterialPageRoute(
-                  //         builder: (context) => OSMTrackingScreen(
-                  //               customerImage: p
-                  //                   .upmcomingedOrders[index]
-                  //                   .customerImage,
-                  //               customerName: p.upmcomingedOrders[index]
-                  //                   .customerName,
-                  //               vendorToken: p
-                  //                   .findVendorById(p
-                  //                       .upmcomingedOrders[index]
-                  //                       .vendorId)!
-                  //                   .fcmToken,
-                  //               orderID: p.upmcomingedOrders[index].id,
-                  //               vendorId:
-                  //                   p.upmcomingedOrders[index].vendorId,
-                  //               chatId:
-                  //                   p.upmcomingedOrders[index].chatId,
-                  //               vendorName: p.upmcomingedOrders[index]
-                  //                   .vendorName,
-                  //               vendorPhone: p.upmcomingedOrders[index]
-                  //                   .vendorPhone,
-                  //               vendorImage: p
-                  //                   .upmcomingedOrders[index].shopImage,
-                  //               lat: double.parse(
-                  //                   p.upmcomingedOrders[index].lat),
-                  //               long: double.parse(
-                  //                   p.upmcomingedOrders[index].long),
-                  //               isOrder: true,
-                  //             )));
-                  //       },
-                  //       status: p.upmcomingedOrders[index].orderStatus,
-                  //       order: p.upmcomingedOrders[index],
-                  //       isAccept:
-                  //           p.upmcomingedOrders[index].orderStatus != 'Waiting',
-                  //       id: p.upmcomingedOrders[index].id,
-                  //       orderStatus: p.upmcomingedOrders[index].orderStatus,
-                  //       width: width,
-                  //       height: height,
-                  //       hotel: p
-                  //           .upmcomingedOrders[index].products[index].quantity
-                  //           .toString(),
-                  //       image: p.upmcomingedOrders[index].image,
-                  //       isPaid: p.upmcomingedOrders[index].isPaid
-                  //           ? "Paid"
-                  //           : 'Not Paid',
-                  //       name: p.upmcomingedOrders[index].name,
-                  //       price: ((p.upmcomingedOrders[index].price *
-                  //                   p.upmcomingedOrders[index].itemCount) +
-                  //               p.upmcomingedOrders[index].deliveryCharge)
-                  //           .toString(),
-                  //       deliveryBoyId:
-                  //           p.upmcomingedOrders[index].deliveryBoyId),
-                  // );
                 },
               ),
             );

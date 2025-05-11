@@ -22,6 +22,7 @@ class OSMTrackingScreen extends StatefulWidget {
   final String vendorToken;
   final String customerImage;
   final String customerName;
+  final String orderStatus;
 
   const OSMTrackingScreen({
     super.key,
@@ -37,6 +38,7 @@ class OSMTrackingScreen extends StatefulWidget {
     required this.vendorToken,
     required this.customerImage,
     required this.customerName,
+    required this.orderStatus,
   });
 
   @override
@@ -248,6 +250,22 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  AppSpacing.h15,
+                  Container(
+                    padding: EdgeInsets.all(10),
+                    height: 40,
+                    width: MediaQuery.of(context).size.width,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Order Status:'),
+                        Text(widget.orderStatus),
+                      ],
+                    ),
                   ),
                 ],
               ),
