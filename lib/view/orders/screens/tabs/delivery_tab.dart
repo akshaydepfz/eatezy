@@ -1,5 +1,4 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:flutter/material.dart';
 
@@ -11,40 +10,53 @@ class DeliveryTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<HomeProvider>(context);
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Consumer<OrderService>(builder: (context, p, _) {
       return p.deliveredOrders.isEmpty
-          ? Center(
-              child: const Text('No Orders Found!'),
+          ? const Center(
+              child: Text('No Orders Found!'),
             )
-          : SizedBox();
-      // : RefreshIndicator(
-      //     onRefresh: () => p.getOrders(),
-      //     child: ListView.builder(
-      //       itemCount: p.deliveredOrders.length,
-      //       shrinkWrap: true,
-      //       itemBuilder: (context, i) {
-      //         return FadeInUp(
-      //           duration: const Duration(milliseconds: 800),
-      //           child: DeliveryCard(
-      //             isRated: p.deliveredOrders[i].isRated,
-      //             rating: p.deliveredOrders[i].rating,
-      //             onReviewTap: () {
-      //               p.showReviewDialog(context, p.deliveredOrders[i].id);
-      //             },
-      //             width: width,
-      //             height: height,
-      //             hotel: p.deliveredOrders[i].itemCount.toString(),
-      //             image: p.deliveredOrders[i].image,
-      //             name: p.deliveredOrders[i].name,
-      //             price: p.deliveredOrders[i].price.toString(),
-      //           ),
-      //         );
-      //       },
-      //     ),
-      //   );
+          : RefreshIndicator(
+              onRefresh: () => p.getOrders(),
+              child: ListView.builder(
+                itemCount: p.deliveredOrders.length,
+                shrinkWrap: true,
+                itemBuilder: (context, i) {
+                  final order = p.deliveredOrders[i];
+                  final totalQuantity = order.products.fold<int>(
+                    0,
+                    (sum, product) => sum + product.quantity,
+                  );
+                  final image = order.shopImage.isNotEmpty
+                      ? order.shopImage
+                      : (order.products.isNotEmpty
+                          ? order.products.first.image
+                          : '');
+                  final name = order.vendorName.isNotEmpty
+                      ? order.vendorName
+                      : (order.products.isNotEmpty
+                          ? order.products.first.name
+                          : 'Order');
+                  return FadeInUp(
+                    duration: const Duration(milliseconds: 800),
+                    child: DeliveryCard(
+                      isRated: order.isRated,
+                      rating: order.rating,
+                      onReviewTap: () {
+                        p.showReviewDialog(context, order.id);
+                      },
+                      width: width,
+                      height: height,
+                      hotel: totalQuantity.toString(),
+                      image: image,
+                      name: name,
+                      price: order.totalPrice,
+                    ),
+                  );
+                },
+              ),
+            );
     });
   }
 }

@@ -93,6 +93,11 @@ class TopDishScreen extends StatelessWidget {
                   itemCount: p.topProducts!.length,
                   itemBuilder: (context, index) {
                     return ProductCard(
+                      onRemove: () {
+                        provider.onItemRemove(index);
+                      },
+                      isSelected: provider.selectedProduct
+                          .contains(p.topProducts![index]),
                       onTap: () {
                         provider.addProduct(p.topProducts![index]);
                       },

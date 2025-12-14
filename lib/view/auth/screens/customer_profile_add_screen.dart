@@ -51,7 +51,8 @@ class CustomerDetailsAddScreen extends StatelessWidget {
               PrimaryTextField(
                   title: 'Name', controller: provider.nameController),
               AppSpacing.h10,
-              PrimaryTextField(title: 'Address', controller: provider.adresss),
+              PrimaryTextField(
+                  title: 'Email Address', controller: provider.emailController),
               const Spacer(),
               PrimaryButton(
                   label: 'Continue',

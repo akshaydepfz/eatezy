@@ -121,6 +121,11 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                   itemCount: p.catProducts!.length,
                   itemBuilder: (context, index) {
                     return ProductCard(
+                      onRemove: () {
+                        provider.onItemRemove(index);
+                      },
+                      isSelected: provider.selectedProduct
+                          .contains(p.catProducts![index]),
                       onTap: () {
                         provider.addProduct(p.catProducts![index]);
                       },

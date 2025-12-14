@@ -121,7 +121,7 @@ class ProcessingTab extends StatelessWidget {
                                 ),
                                 child: Center(
                                   child: Text(
-                                    'cancell',
+                                    'Cancel Order',
                                     style: const TextStyle(
                                       color: Colors.grey,
                                     ),

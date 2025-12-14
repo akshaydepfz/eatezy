@@ -424,6 +424,7 @@ class TopDishCard extends StatelessWidget {
                   width: 100,
                   child: Image.network(
                     image,
+                    fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return LottieBuilder.asset(
                         'assets/lottie/load.json',

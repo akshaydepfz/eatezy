@@ -219,6 +219,11 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                                 scrollDirection: Axis.horizontal,
                                 itemBuilder: (context, i) {
                                   return ProductCard(
+                                    onRemove: () {
+                                      provider.onItemRemove(i);
+                                    },
+                                    isSelected: provider.selectedProduct
+                                        .contains(p.featuredProducts![i]),
                                     onTap: () {},
                                     image: p.featuredProducts![i].image,
                                     name: p.featuredProducts![i].name,
@@ -292,6 +297,11 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                           itemCount: p.products!.length,
                           itemBuilder: (context, index) {
                             return ProductCard(
+                              onRemove: () {
+                                provider.onItemRemove(index);
+                              },
+                              isSelected: provider.selectedProduct
+                                  .contains(p.products![index]),
                               onTap: () {
                                 provider.addProduct(p.products![index]);
                               },
@@ -404,13 +414,16 @@ class ProductCard extends StatelessWidget {
     required this.price,
     required this.slashedPrice,
     required this.onTap,
+    required this.isSelected,
+    required this.onRemove,
   });
   final String image;
   final String name;
   final String price;
   final String slashedPrice;
   final Function() onTap;
-
+  final Function() onRemove;
+  final bool isSelected;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -426,39 +439,61 @@ class ProductCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Image.network(
-                  image,
-                  errorBuilder: (context, error, stackTrace) {
-                    return LottieBuilder.asset(
-                      'assets/lottie/load.json',
-                      fit: BoxFit.cover,
-                    );
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      return child;
-                    } else {
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
                       return LottieBuilder.asset(
                         'assets/lottie/load.json',
                         fit: BoxFit.cover,
                       );
-                    }
-                  },
-                ),
-              ),
-              Positioned(
-                bottom: 10,
-                right: 20,
-                child: GestureDetector(
-                  onTap: onTap,
-                  child: Container(
-                    padding: EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                        color: Colors.white, shape: BoxShape.circle),
-                    child: Icon(Icons.add, color: Colors.black),
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      } else {
+                        return LottieBuilder.asset(
+                          'assets/lottie/load.json',
+                          fit: BoxFit.cover,
+                        );
+                      }
+                    },
                   ),
                 ),
-              )
+              ),
+              isSelected
+                  ? Positioned(
+                      bottom: 10,
+                      right: 20,
+                      child: GestureDetector(
+                        onTap: onRemove,
+                        child: Container(
+                          padding: EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                              color: Colors.white, shape: BoxShape.circle),
+                          child: Icon(
+                            Icons.delete,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Positioned(
+                      bottom: 10,
+                      right: 20,
+                      child: GestureDetector(
+                        onTap: onTap,
+                        child: Container(
+                          padding: EdgeInsets.all(3),
+                          decoration: BoxDecoration(
+                              color: Colors.white, shape: BoxShape.circle),
+                          child: Icon(Icons.add, color: Colors.black),
+                        ),
+                      ),
+                    )
             ],
           ),
           AppSpacing.h5,

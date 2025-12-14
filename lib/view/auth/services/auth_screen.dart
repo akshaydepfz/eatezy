@@ -217,6 +217,14 @@ class LoginSrvice extends ChangeNotifier {
       );
       return;
     }
+    if (emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("Please enter email address"),
+            backgroundColor: Colors.red),
+      );
+      return;
+    }
 
     final pref = await SharedPreferences.getInstance();
     isLoading = true;
