@@ -28,6 +28,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CartService>(context);
+    final restuarantProvider = Provider.of<RestuarantProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +66,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '120+ item found',
+                      '${restuarantProvider.catProducts!.length} items found',
                       style: TextStyle(color: Colors.white),
                     ),
                   ],

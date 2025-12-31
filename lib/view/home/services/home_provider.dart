@@ -13,17 +13,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeProvider extends ChangeNotifier {
   String _address = 'Loading...';
+  double? _latitude;
+  double? _longitude;
   int _selectedIndex = 0;
   List<VendorModel>? vendors;
   List<ProductModel>? topProducts;
   List<CategoryModel>? category;
-  bool _isLoading = false;
   int get selectedIndex => _selectedIndex;
   List<BannerModel> banners = [];
   String get address => _address;
+  double? get latitude => _latitude;
+  double? get longitude => _longitude;
 
   void onSelectedChange(int i) {
     _selectedIndex = i;
@@ -49,44 +53,66 @@ class HomeProvider extends ChangeNotifier {
 
   Future<void> gettVendors() async {
     try {
-      // Get user's current location
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      double userLat = position.latitude;
-      double userLng = position.longitude;
-
-      // Fetch all vendors
       QuerySnapshot snapshot =
           await FirebaseFirestore.instance.collection('vendors').get();
-
       vendors = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        double vendorLat = double.tryParse(data['lat'].toString()) ?? 0.0;
-        double vendorLng = double.tryParse(data['long'].toString()) ?? 0.0;
-
-        double distanceInKm = Geolocator.distanceBetween(
-              userLat,
-              userLng,
-              vendorLat,
-              vendorLng,
-            ) /
-            1000;
-
-        double estimatedMinutes = (distanceInKm / 40) * 60;
-
         return VendorModel.fromFirestore(
-          data,
-          doc.id,
-          estimateDistance: '${distanceInKm.toStringAsFixed(2)} km',
-          estimateTime: formatTime(estimatedMinutes),
-        );
+            doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
-
       notifyListeners();
     } catch (e) {
       print('Error fetching vendors: $e');
     }
   }
+
+  // Future<void> gettVendors() async {
+  //   try {
+  //     // Use saved location if available, otherwise get current location
+  //     double userLat;
+  //     double userLng;
+
+  //     if (_latitude != null && _longitude != null) {
+  //       userLat = _latitude!;
+  //       userLng = _longitude!;
+  //     } else {
+  //       Position position = await Geolocator.getCurrentPosition(
+  //           desiredAccuracy: LocationAccuracy.high);
+  //       userLat = position.latitude;
+  //       userLng = position.longitude;
+  //     }
+
+  //     // Fetch all vendors
+  //     QuerySnapshot snapshot =
+  //         await FirebaseFirestore.instance.collection('vendors').get();
+
+  //     vendors = snapshot.docs.map((doc) {
+  //       final data = doc.data() as Map<String, dynamic>;
+  //       double vendorLat = double.tryParse(data['lat'].toString()) ?? 0.0;
+  //       double vendorLng = double.tryParse(data['long'].toString()) ?? 0.0;
+
+  //       double distanceInKm = Geolocator.distanceBetween(
+  //             userLat,
+  //             userLng,
+  //             vendorLat,
+  //             vendorLng,
+  //           ) /
+  //           1000;
+
+  //       double estimatedMinutes = (distanceInKm / 40) * 60;
+
+  //       return VendorModel.fromFirestore(
+  //         data,
+  //         doc.id,
+  //         estimateDistance: '${distanceInKm.toStringAsFixed(2)} km',
+  //         estimateTime: formatTime(estimatedMinutes),
+  //       );
+  //     }).toList();
+
+  //     notifyListeners();
+  //   } catch (e) {
+  //     print('Error fetching vendors: $e');
+  //   }
+  // }
 
   Future<void> fetchBanners() async {
     try {
@@ -121,9 +147,52 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> getLocationAndAddress() async {
-    _isLoading = true;
+  Future<void> loadSavedLocation() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? savedAddress = prefs.getString('saved_address');
+      double? savedLat = prefs.getDouble('saved_latitude');
+      double? savedLng = prefs.getDouble('saved_longitude');
 
+      if (savedAddress != null && savedLat != null && savedLng != null) {
+        _address = savedAddress;
+        _latitude = savedLat;
+        _longitude = savedLng;
+        notifyListeners();
+        return;
+      }
+    } catch (e) {
+      log('Error loading saved location: $e');
+    }
+    // If no saved location, get current location
+    await getLocationAndAddress();
+  }
+
+  Future<void> saveLocation({
+    required String address,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('saved_address', address);
+      await prefs.setDouble('saved_latitude', latitude);
+      await prefs.setDouble('saved_longitude', longitude);
+
+      _address = address;
+      _latitude = latitude;
+      _longitude = longitude;
+      notifyListeners();
+
+      // Refresh vendors with new location
+      await gettVendors();
+    } catch (e) {
+      log('Error saving location: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> getLocationAndAddress() async {
     try {
       LocationPermission permission = await Geolocator.requestPermission();
       log(permission.name);
@@ -139,13 +208,16 @@ class HomeProvider extends ChangeNotifier {
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
 
-        _address = '${place.street}, ${place.locality}, ${place.country}';
+        _address =
+            '${place.street ?? ''}, ${place.locality ?? ''}, ${place.country ?? ''}'
+                .replaceAll(RegExp(r'^,\s*|,\s*$'), '')
+                .replaceAll(RegExp(r',\s*,+'), ', ');
+        _latitude = position.latitude;
+        _longitude = position.longitude;
         notifyListeners();
       }
     } catch (e) {
       _address = '$e';
-    } finally {
-      _isLoading = false;
     }
   }
 

@@ -22,7 +22,7 @@ class WalkthroughScreen extends StatefulWidget {
 class _WalkthroughScreenState extends State<WalkthroughScreen> {
   @override
   void initState() {
-    Provider.of<HomeProvider>(context, listen: false).getLocationAndAddress();
+    Provider.of<HomeProvider>(context, listen: false).loadSavedLocation();
     super.initState();
   }
 

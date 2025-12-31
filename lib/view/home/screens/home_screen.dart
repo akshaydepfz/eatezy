@@ -3,6 +3,7 @@ import 'package:eatezy/utils/app_icons.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/categories/screens/category_view_screen.dart';
+import 'package:eatezy/view/home/screens/select_location_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
@@ -26,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
-    Provider.of<HomeProvider>(context, listen: false).getLocationAndAddress();
+    Provider.of<HomeProvider>(context, listen: false).loadSavedLocation();
     Provider.of<HomeProvider>(context, listen: false).gettVendors();
     Provider.of<HomeProvider>(context, listen: false).fetchCategory();
     Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
@@ -51,40 +52,56 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        SizedBox(
-                            height: 25,
-                            child: Image.asset(
-                              AppIcons.location,
-                              color: AppColor.primary,
-                            )),
-                        AppSpacing.w10,
-                        Consumer<HomeProvider>(builder: (context, p, _) {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: MediaQuery.of(context).size.width / 2,
-                                child: Text(
-                                  p.address,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                      color: Colors.black, fontSize: 12),
-                                ),
-                              )
-                            ],
-                          );
-                        }),
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 15),
-                          child: Icon(
-                            Icons.arrow_drop_down,
-                            color: Colors.black,
-                            size: 30,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SelectLocationScreen(),
                           ),
-                        )
-                      ],
+                        ).then((_) {
+                          // Refresh location when returning from selection screen
+                          Provider.of<HomeProvider>(context, listen: false)
+                              .loadSavedLocation();
+                          Provider.of<HomeProvider>(context, listen: false)
+                              .gettVendors();
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          SizedBox(
+                              height: 25,
+                              child: Image.asset(
+                                AppIcons.location,
+                                color: AppColor.primary,
+                              )),
+                          AppSpacing.w10,
+                          Consumer<HomeProvider>(builder: (context, p, _) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SizedBox(
+                                  width: MediaQuery.of(context).size.width / 2,
+                                  child: Text(
+                                    p.address,
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 12),
+                                  ),
+                                )
+                              ],
+                            );
+                          }),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 15),
+                            child: Icon(
+                              Icons.arrow_drop_down,
+                              color: Colors.black,
+                              size: 30,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                     GestureDetector(
                         onTap: () {

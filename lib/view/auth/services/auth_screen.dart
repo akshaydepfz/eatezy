@@ -89,9 +89,7 @@ class LoginSrvice extends ChangeNotifier {
         // 🔥 MOBILE OTP
         await _auth.verifyPhoneNumber(
           phoneNumber: "+91${mobileController.text}",
-          verificationCompleted: (PhoneAuthCredential credential) async {
-            await _auth.signInWithCredential(credential);
-          },
+          verificationCompleted: (PhoneAuthCredential credential) async {},
           verificationFailed: (FirebaseAuthException e) {
             isLoading = false;
             notifyListeners();

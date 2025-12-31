@@ -1,5 +1,6 @@
 buildscript {
-    ext.kotlin_version = '1.9.22'
+    ext.kotlin_version = '2.1.20'
+
     repositories {
         google()
         mavenCentral()
@@ -8,7 +9,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.3.13'
-        classpath 'com.android.tools.build:gradle:8.2.1'
+        classpath 'com.android.tools.build:gradle:8.13.0'
     }
 }
 
@@ -20,10 +21,22 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
+/*
+ * 🔥 CRITICAL FIX
+ * Forces ALL Flutter plugins (geocoding, lifecycle, core-ktx, etc.)
+ * to compile with SDK 36 instead of 33
+ */
 subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                compileSdkVersion 36
+            }
+        }
+    }
+
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 

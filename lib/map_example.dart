@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 class OSMTrackingScreen extends StatefulWidget {
   final double lat;
@@ -95,44 +96,119 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
 
     await _getRoute(start, LatLng(widget.lat, widget.long));
 
+    // Center map to show both locations
+    if (mounted) {
+      _centerMapOnBothLocations();
+    }
+
     _positionStream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.best),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10, // Update every 10 meters
+      ),
     ).listen((Position pos) async {
-      LatLng newLoc = LatLng(pos.latitude, pos.longitude);
-      setState(() {
-        currentLocation = newLoc;
-        distance = Geolocator.distanceBetween(
-              pos.latitude,
-              pos.longitude,
-              widget.lat,
-              widget.long,
-            ) /
-            1000;
-      });
-      mapController.move(newLoc, 16);
-      await _getRoute(newLoc, LatLng(widget.lat, widget.long));
+      if (mounted) {
+        LatLng newLoc = LatLng(pos.latitude, pos.longitude);
+        setState(() {
+          currentLocation = newLoc;
+          distance = Geolocator.distanceBetween(
+                pos.latitude,
+                pos.longitude,
+                widget.lat,
+                widget.long,
+              ) /
+              1000;
+        });
+        mapController.move(newLoc, mapController.camera.zoom);
+        await _getRoute(newLoc, LatLng(widget.lat, widget.long));
+      }
     });
   }
 
   Future<void> _getRoute(LatLng start, LatLng end) async {
-    final url =
-        'http://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson';
+    try {
+      // Use HTTPS for OSRM API
+      final url =
+          'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson';
 
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final coords = data['routes'][0]['geometry']['coordinates'];
+      final response = await http.get(Uri.parse(url)).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw TimeoutException('Route request timed out');
+        },
+      );
 
-      setState(() {
-        routePoints =
-            coords.map<LatLng>((coord) => LatLng(coord[1], coord[0])).toList();
-      });
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['routes'] != null &&
+            data['routes'].isNotEmpty &&
+            data['routes'][0]['geometry'] != null) {
+          final coords = data['routes'][0]['geometry']['coordinates'];
+
+          if (mounted) {
+            setState(() {
+              routePoints = coords
+                  .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
+                  .toList();
+            });
+          }
+        }
+      } else {
+        // If route API fails, just show markers without route
+        if (mounted) {
+          setState(() {
+            routePoints = [];
+          });
+        }
+      }
+    } catch (e) {
+      // If route calculation fails, continue without route line
+      if (mounted) {
+        setState(() {
+          routePoints = [];
+        });
+      }
+      // Silently fail - map will still work without route
     }
+  }
+
+  void _centerMapOnBothLocations() {
+    if (currentLocation == null) return;
+
+    final start = currentLocation!;
+    final end = LatLng(widget.lat, widget.long);
+
+    // Calculate center point
+    final centerLat = (start.latitude + end.latitude) / 2;
+    final centerLng = (start.longitude + end.longitude) / 2;
+
+    // Calculate distance to determine zoom level
+    final distance = Geolocator.distanceBetween(
+      start.latitude,
+      start.longitude,
+      end.latitude,
+      end.longitude,
+    );
+
+    // Adjust zoom based on distance
+    double zoom = 16;
+    if (distance > 10000) {
+      zoom = 12;
+    } else if (distance > 5000) {
+      zoom = 13;
+    } else if (distance > 2000) {
+      zoom = 14;
+    } else if (distance > 1000) {
+      zoom = 15;
+    }
+
+    mapController.move(LatLng(centerLat, centerLng), zoom);
   }
 
   @override
   void dispose() {
     _positionStream?.cancel();
+    mapController.dispose();
     super.dispose();
   }
 
@@ -142,46 +218,67 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
       appBar: AppBar(title: const Text("")),
       body: currentLocation == null
           ? const Center(child: CircularProgressIndicator())
-          : Stack(
-              children: [
-                FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    initialCenter: currentLocation!,
-                    initialZoom: 16,
+          : SizedBox.expand(
+              child: FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  initialCenter: currentLocation!,
+                  initialZoom: 16,
+                  minZoom: 5,
+                  maxZoom: 18,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
                   ),
-                  children: [
-                    TileLayer(
-                      urlTemplate:
-                          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                      userAgentPackageName: 'com.example.app',
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.eatezy.app',
+                    tileProvider: NetworkTileProvider(
+                      headers: {
+                        'User-Agent': 'EatezyApp/1.0 (contact@eatezy.com)',
+                        'Referer': 'https://eatezy.com',
+                      },
                     ),
+                    maxZoom: 19,
+                  ),
+                  if (routePoints.isNotEmpty)
                     PolylineLayer(
                       polylines: [
                         Polyline(
                           points: routePoints,
-                          color: Colors.blue,
+                          color: AppColor.primary,
                           strokeWidth: 4.0,
                         ),
                       ],
                     ),
-                    MarkerLayer(
-                      markers: [
-                        Marker(
-                          point: currentLocation!,
-                          child: const Icon(Icons.place,
-                              size: 40, color: AppColor.primary),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: currentLocation!,
+                        width: 50,
+                        height: 50,
+                        child: const Icon(
+                          Icons.my_location,
+                          size: 40,
+                          color: AppColor.primary,
                         ),
-                        Marker(
-                          point: LatLng(widget.lat, widget.long),
-                          child: const Icon(Icons.place,
-                              size: 40, color: Colors.red),
+                      ),
+                      Marker(
+                        point: LatLng(widget.lat, widget.long),
+                        width: 50,
+                        height: 50,
+                        child: const Icon(
+                          Icons.location_on,
+                          size: 40,
+                          color: Colors.red,
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
       bottomSheet: widget.isOrder
           ? Container(
@@ -228,8 +325,13 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                           ),
                         ],
                       ),
-                      CircleAvatar(
-                        child: Icon(Icons.call),
+                      GestureDetector(
+                        onTap: () {
+                          launchUrl(Uri.parse('tel:+91${widget.vendorPhone}'));
+                        },
+                        child: CircleAvatar(
+                          child: Icon(Icons.call),
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {

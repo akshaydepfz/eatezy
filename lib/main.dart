@@ -1,3 +1,4 @@
+import 'package:eatezy/services/app_version_service.dart';
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/view/auth/screens/login_screen.dart';
 import 'package:eatezy/view/auth/services/auth_screen.dart';
@@ -9,7 +10,7 @@ import 'package:eatezy/view/it_park/services/it_service.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
-import 'package:eatezy/walkthrough_screen.dart';
+import 'package:eatezy/widgets/update_app_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -110,16 +111,89 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColor.primary),
           useMaterial3: true,
         ),
-        home: StreamBuilder(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, userSnp) {
-            if (userSnp.hasData) {
-              return const LandingScreen();
-            }
-            return const LoginScreen();
-          },
-        ),
+        home: const AppVersionChecker(),
       ),
+    );
+  }
+}
+
+/// Widget that checks for app updates before showing the main app
+class AppVersionChecker extends StatefulWidget {
+  const AppVersionChecker({super.key});
+
+  @override
+  State<AppVersionChecker> createState() => _AppVersionCheckerState();
+}
+
+class _AppVersionCheckerState extends State<AppVersionChecker> {
+  final AppVersionService _versionService = AppVersionService();
+  bool _isChecking = true;
+  bool _updateRequired = false;
+  String? _latestVersion;
+  String? _updateUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAppVersion();
+  }
+
+  Future<void> _checkAppVersion() async {
+    try {
+      final isUpdateRequired = await _versionService.isUpdateRequired();
+      final latestVersion = await _versionService.getLatestVersion();
+      final updateUrl = await _versionService.getUpdateUrl();
+
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+          _updateRequired = isUpdateRequired;
+          _latestVersion = latestVersion;
+          _updateUrl = updateUrl;
+        });
+
+        // Show update dialog if update is required
+        if (_updateRequired && _latestVersion != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showUpdateDialog(
+              context,
+              latestVersion: _latestVersion!,
+              updateUrl: _updateUrl,
+            );
+          });
+        }
+      }
+    } catch (e) {
+      // If version check fails, continue with app (don't block user)
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+          _updateRequired = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show loading while checking version
+    if (_isChecking) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // Show main app
+    return StreamBuilder(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, userSnp) {
+        if (userSnp.hasData) {
+          return const LandingScreen();
+        }
+        return const LoginScreen();
+      },
     );
   }
 }
