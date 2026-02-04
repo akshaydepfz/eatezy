@@ -1,11 +1,14 @@
 import 'package:eatezy/map_example.dart';
+import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
+import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -23,11 +26,14 @@ class RestaurantViewScreen extends StatefulWidget {
 class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
   @override
   void initState() {
+    super.initState();
     Provider.of<RestuarantProvider>(context, listen: false)
         .fetchProducts(widget.vendor.id);
     Provider.of<RestuarantProvider>(context, listen: false)
         .calculateDistanceAndTime(widget.vendor.id);
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SavedItemsService>(context, listen: false).loadIfNeeded();
+    });
   }
 
   @override
@@ -41,12 +47,17 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
             children: [
               Stack(
                 children: [
-                  SizedBox(
+                  Container(
+                    color: widget.vendor.featuredImage != ''
+                        ? Colors.transparent
+                        : Colors.grey.shade300,
                     height: 200,
                     width: MediaQuery.of(context).size.width,
-                    child: Image.asset(
-                      'assets/images/kfc.png',
-                    ),
+                    child: widget.vendor.featuredImage != ''
+                        ? Image.network(
+                            widget.vendor.featuredImage,
+                          )
+                        : Icon(Icons.image_not_supported, color: Colors.grey),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -114,14 +125,6 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.vendor.shopName,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    AppSpacing.h5,
                     Row(
                       children: [
                         Icon(
@@ -249,34 +252,24 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                       ),
                     ),
                     AppSpacing.h10,
-                    Consumer<RestuarantProvider>(
-                      builder: (context, p, _) {
+                    Consumer2<RestuarantProvider, SavedItemsService>(
+                      builder: (context, p, savedService, _) {
                         if (p.products == null) {
-                          return GridView.builder(
+                          return ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 0.7,
-                            ),
                             itemCount: 4,
                             itemBuilder: (context, index) {
                               return Padding(
-                                padding: const EdgeInsets.all(0.0),
-                                child: Center(
-                                  child: Shimmer.fromColors(
-                                    baseColor: Colors.grey[300]!,
-                                    highlightColor: Colors.grey[100]!,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[300],
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      width: MediaQuery.of(context).size.width,
-                                      height: 100,
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
                                 ),
@@ -284,31 +277,40 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                             },
                           );
                         }
-                        return GridView.builder(
+                        return ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 8,
-                            childAspectRatio: 0.7,
-                          ),
                           itemCount: p.products!.length,
                           itemBuilder: (context, index) {
-                            return ProductCard(
-                              onRemove: () {
-                                provider.onItemRemove(index);
-                              },
-                              isSelected: provider.selectedProduct
-                                  .contains(p.products![index]),
-                              onTap: () {
-                                provider.addProduct(p.products![index]);
-                              },
-                              image: p.products![index].image,
-                              name: p.products![index].name,
-                              price: p.products![index].price.toString(),
-                              slashedPrice: p.products![index].slashedPrice,
+                            final product = p.products![index];
+                            final cartIndex = provider.selectedProduct
+                                .indexWhere((p) => p.id == product.id);
+                            final quantity = cartIndex != -1
+                                ? provider.selectedProduct[cartIndex].itemCount
+                                : 0;
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
+                              child: MenuItemCard(
+                                product: product,
+                                quantity: quantity,
+                                isSaved: savedService.isSaved(product.id),
+                                showRestaurantName: false,
+                                onAdd: () => provider.addProductWithVendorCheck(
+                                    context, product),
+                                onRemove: () {
+                                  if (cartIndex != -1) {
+                                    provider.onItemRemove(cartIndex);
+                                  }
+                                },
+                                onShare: () {
+                                  Share.share(
+                                    'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
+                                    subject: product.name,
+                                  );
+                                },
+                                onSaveToggle: () =>
+                                    savedService.toggleSaved(product.id),
+                              ),
                             );
                           },
                         );
@@ -514,6 +516,336 @@ class ProductCard extends StatelessWidget {
               )
             ],
           )
+        ],
+      ),
+    );
+  }
+}
+
+class MenuItemCard extends StatelessWidget {
+  const MenuItemCard({
+    super.key,
+    required this.product,
+    required this.quantity,
+    required this.isSaved,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onShare,
+    required this.onSaveToggle,
+    this.restaurantName,
+    this.showRestaurantName = true,
+  });
+
+  final ProductModel product;
+  final int quantity;
+  final bool isSaved;
+  final VoidCallback onAdd;
+  final VoidCallback onRemove;
+  final VoidCallback onShare;
+  final VoidCallback onSaveToggle;
+
+  /// When true (e.g. category view), show restaurant name at top. When false (e.g. restaurant view), show offer tag instead.
+  final String? restaurantName;
+  final bool showRestaurantName;
+
+  /// Restaurant name from optional param or product's shop_name from Firestore.
+  String get _displayRestaurantName {
+    final name = (restaurantName ?? product.shopName).trim();
+    return name.isEmpty ? 'Restaurant' : name;
+  }
+
+  int? _discountPercent() {
+    if (product.slashedPrice.isEmpty) return null;
+    final original =
+        double.tryParse(product.slashedPrice.replaceAll(RegExp(r'[^\d.]'), ''));
+    if (original == null || original <= 0) return null;
+    final pct = ((original - product.price) / original * 100).round();
+    return pct > 0 ? pct : null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final discount = _discountPercent();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (showRestaurantName && _displayRestaurantName.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+              child: SizedBox(
+                width: double.infinity,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                  constraints: const BoxConstraints(minHeight: 40),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      Icon(Icons.store, size: 18, color: AppColor.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _displayRestaurantName,
+                          style: GoogleFonts.rubik(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColor.primary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              product.name,
+                              style: GoogleFonts.rubik(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(
+                            '₹${product.price.toStringAsFixed(2)}',
+                            style: GoogleFonts.rubik(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (product.slashedPrice.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '₹${product.slashedPrice}',
+                              style: GoogleFonts.rubik(
+                                fontSize: 13,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ],
+                          if (discount != null && discount > 0) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '$discount% OFF',
+                              style: GoogleFonts.rubik(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF2563EB),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        product.description.isEmpty
+                            ? 'No description'
+                            : product.description.length > 60
+                                ? '${product.description.substring(0, 60)}...more'
+                                : product.description,
+                        style: GoogleFonts.rubik(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'NOT ELIGIBLE FOR COUPONS',
+                        style: GoogleFonts.rubik(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: onSaveToggle,
+                            icon: Icon(
+                              isSaved ? Icons.bookmark : Icons.bookmark_border,
+                              size: 22,
+                              color: isSaved
+                                  ? AppColor.primary
+                                  : Colors.grey.shade600,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                          ),
+                          IconButton(
+                            onPressed: onShare,
+                            icon: Icon(Icons.share_outlined,
+                                size: 22, color: Colors.grey.shade600),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 120,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: Image.network(
+                                product.image,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return LottieBuilder.asset(
+                                    'assets/lottie/load.json',
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return LottieBuilder.asset(
+                                    'assets/lottie/load.json',
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: -10,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: AppColor.primary.withOpacity(0.6),
+                                    width: 1.2),
+                              ),
+                              child: quantity > 0
+                                  ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: onRemove,
+                                          child: Icon(
+                                            Icons.remove,
+                                            size: 20,
+                                            color: AppColor.primary,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          child: Text(
+                                            '$quantity',
+                                            style: GoogleFonts.rubik(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColor.primary,
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: onAdd,
+                                          child: Icon(
+                                            Icons.add,
+                                            size: 20,
+                                            color: AppColor.primary,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : GestureDetector(
+                                      onTap: onAdd,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'ADD',
+                                            style: GoogleFonts.rubik(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColor.primary,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Icon(Icons.add,
+                                              size: 18,
+                                              color: AppColor.primary),
+                                        ],
+                                      ),
+                                    ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

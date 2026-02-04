@@ -70,6 +70,30 @@ class RestuarantProvider extends ChangeNotifier {
     }
   }
 
+  /// Fetches products by their document IDs (e.g. for favorites list).
+  Future<List<ProductModel>> fetchProductsByIds(List<String> ids) async {
+    if (ids.isEmpty) return [];
+    try {
+      final futures = ids.map((id) => FirebaseFirestore.instance
+          .collection('products')
+          .doc(id)
+          .get());
+      final snaps = await Future.wait(futures);
+      final products = <ProductModel>[];
+      for (var i = 0; i < snaps.length; i++) {
+        final doc = snaps[i];
+        if (doc.exists && doc.data() != null) {
+          products.add(ProductModel.fromFirestore(
+              doc.data()!, doc.id));
+        }
+      }
+      return products;
+    } catch (e) {
+      print('Error fetching products by ids: $e');
+      return [];
+    }
+  }
+
   String formatTime(double minutes) {
     if (minutes < 60) {
       return '${minutes.toStringAsFixed(0)} min';

@@ -99,7 +99,8 @@ class TopDishScreen extends StatelessWidget {
                       isSelected: provider.selectedProduct
                           .contains(p.topProducts![index]),
                       onTap: () {
-                        provider.addProduct(p.topProducts![index]);
+                        provider.addProductWithVendorCheck(
+                            context, p.topProducts![index]);
                       },
                       image: p.topProducts![index].image,
                       name: p.topProducts![index].name,

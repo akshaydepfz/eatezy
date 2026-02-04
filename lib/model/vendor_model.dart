@@ -15,6 +15,7 @@ class VendorModel {
   final String lat;
   final String long;
   final String fcmToken;
+  final String featuredImage;
 
   VendorModel({
     required this.id,
@@ -33,6 +34,7 @@ class VendorModel {
     required this.lat,
     required this.long,
     required this.fcmToken,
+    required this.featuredImage,
   });
 
   factory VendorModel.fromFirestore(
@@ -58,6 +60,7 @@ class VendorModel {
       lat: data['lat'] ?? "",
       long: data['long'] ?? '',
       fcmToken: data['fcm_token'] ?? "",
+      featuredImage: data['featured_image'] ?? '',
     );
   }
 }

@@ -29,6 +29,7 @@ class OrderModel {
   String chatId;
   String discount;
   String totalPrice;
+  String notes;
   List<OrderedProduct> products;
 
   OrderModel(
@@ -62,7 +63,8 @@ class OrderModel {
       required this.chatId,
       required this.products,
       required this.discount,
-      required this.totalPrice});
+      required this.totalPrice,
+      this.notes = ''});
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
@@ -98,7 +100,8 @@ class OrderModel {
             .map((e) => OrderedProduct.fromMap(e))
             .toList(),
         discount: data['discount'] ?? '',
-        totalPrice: data['total'] ?? '');
+        totalPrice: data['total'] ?? '',
+        notes: data['notes'] ?? '');
   }
 
   Map<String, dynamic> toMap() {
@@ -132,7 +135,8 @@ class OrderModel {
       'chat_id': chatId,
       'products': products.map((e) => e.toMap()).toList(),
       'discount': discount,
-      'total': totalPrice
+      'total': totalPrice,
+      'notes': notes,
     };
   }
 }

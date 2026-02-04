@@ -11,7 +11,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
-import 'package:googleapis/servicecontrol/v1.dart' as servicecontrol;
 
 class CartService extends ChangeNotifier {
   List<ProductModel> selectedProduct = [];
@@ -21,6 +20,7 @@ class CartService extends ChangeNotifier {
   int? selectedCoupon;
 
   TextEditingController couponController = TextEditingController();
+  TextEditingController notesController = TextEditingController();
 
   Future<void> gettVendors() async {
     try {
@@ -163,6 +163,57 @@ class CartService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all items, coupon and notes from the cart.
+  void clearCart() {
+    selectedProduct.clear();
+    selectedCoupon = null;
+    notesController.clear();
+    notifyListeners();
+  }
+
+  /// Returns the vendor ID of the first item in cart, or null if cart is empty.
+  String? get cartVendorId =>
+      selectedProduct.isNotEmpty ? selectedProduct.first.vendorID : null;
+
+  /// Adds product only if cart is empty or from same vendor. If cart has items
+  /// from another restaurant, shows a dialog to either cancel or clear cart and add.
+  Future<void> addProductWithVendorCheck(
+      BuildContext context, ProductModel product) async {
+    if (selectedProduct.isEmpty) {
+      addProduct(product);
+      return;
+    }
+    if (selectedProduct.first.vendorID == product.vendorID) {
+      addProduct(product);
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Different restaurant'),
+        content: Text(
+          'Your cart has items from ${selectedProduct.first.shopName}. '
+          'You can only order from one restaurant at a time. '
+          'Clear cart and add items from ${product.shopName}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Clear & Add'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      clearCart();
+      addProduct(product);
+    }
+  }
+
   double getTotalAmount(int deliveryCharge, int? discountPercentage) {
     double totalAmount = selectedProduct.fold(
       0.0,
@@ -238,7 +289,8 @@ class CartService extends ChangeNotifier {
           vendorPhone: findVendorById(vendorId)!.phone,
           chatId: '',
           products: orderedProducts,
-          discount: selectedCoupon.toString());
+          discount: selectedCoupon.toString(),
+          notes: notesController.text.trim());
 
       sendFCMMessage(findVendorById(vendorId)!.fcmToken);
 
@@ -247,7 +299,8 @@ class CartService extends ChangeNotifier {
 
     isLoading = false;
     selectedCoupon = null;
-    couponController.text;
+    couponController.clear();
+    notesController.clear();
     selectedProduct.clear();
     notifyListeners();
 

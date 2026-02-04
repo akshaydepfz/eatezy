@@ -12,7 +12,7 @@ class ProductModel {
   String unitPerItem;
   int itemCount;
   String vendorID;
-
+  String shopName;
   ProductModel(
       {required this.id,
       required this.name,
@@ -26,6 +26,7 @@ class ProductModel {
       required this.slashedPrice,
       required this.unitPerItem,
       required this.itemCount,
+      required this.shopName,
       required this.vendorID});
 
   // Create a factory method to map Firestore data to ProductModel
@@ -46,6 +47,7 @@ class ProductModel {
       unitPerItem: data['unitPerItem'] ?? "",
       itemCount: data['item_count'] ?? 0,
       vendorID: data['vendor_id'] ?? '',
+      shopName: data['shop_name'] ?? '',
     );
   }
 }

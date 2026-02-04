@@ -146,98 +146,153 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 AppSpacing.h10,
                 Consumer<HomeProvider>(builder: (context, p, _) {
+                  const int crossAxisCount = 2;
+                  const double spacing = 10;
+                  const double catItemWidth = 90;
+                  const double catItemHeight = 100;
+
                   if (p.category == null) {
-                    return GridView.builder(
-                      shrinkWrap: true,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 0.9),
-                      itemCount: 8,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: Center(
-                            child: Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(12)),
-                                width: MediaQuery.of(context).size.width,
-                                height: 100,
+                    final double maxWidth =
+                        MediaQuery.of(context).size.width - 30;
+                    return SizedBox(
+                      width: maxWidth,
+                      height: crossAxisCount * catItemHeight +
+                          (crossAxisCount - 1) * spacing,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: List.generate(
+                            4,
+                            (_) => Padding(
+                                  padding:
+                                      const EdgeInsets.only(right: spacing),
+                                  child: Column(
+                                    children: List.generate(
+                                        crossAxisCount,
+                                        (row) => Padding(
+                                              padding: EdgeInsets.only(
+                                                  bottom:
+                                                      row < crossAxisCount - 1
+                                                          ? spacing
+                                                          : 0),
+                                              child: Shimmer.fromColors(
+                                                baseColor: Colors.grey[300]!,
+                                                highlightColor:
+                                                    Colors.grey[100]!,
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.grey[300],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12)),
+                                                  width: catItemWidth,
+                                                  height: catItemHeight,
+                                                ),
+                                              ),
+                                            )),
+                                  ),
+                                )),
+                      ),
+                    );
+                  }
+                  if (p.category!.isEmpty) return const SizedBox.shrink();
+
+                  Widget buildCategoryItem(int index) {
+                    final c = p.category![index];
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CategoryViewScreen(
+                                      image: c.image,
+                                      category: c.name,
+                                    )));
+                      },
+                      child: SizedBox(
+                        width: catItemWidth,
+                        height: catItemHeight,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Hero(
+                              tag: c.name,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: SizedBox(
+                                    height: 60,
+                                    width: 60,
+                                    child: Image.network(
+                                      c.image,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return LottieBuilder.asset(
+                                          'assets/lottie/load.json',
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return LottieBuilder.asset(
+                                          'assets/lottie/load.json',
+                                          fit: BoxFit.cover,
+                                        );
+                                      },
+                                    )),
                               ),
                             ),
+                            AppSpacing.h5,
+                            Expanded(
+                              child: Text(
+                                c.name,
+                                style: const TextStyle(fontSize: 12),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  final int columnCount =
+                      (p.category!.length + crossAxisCount - 1) ~/
+                          crossAxisCount;
+                  final double maxWidth =
+                      MediaQuery.of(context).size.width - 30;
+                  return SizedBox(
+                    width: maxWidth,
+                    height: crossAxisCount * catItemHeight +
+                        (crossAxisCount - 1) * spacing,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: columnCount,
+                      itemBuilder: (context, colIndex) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: spacing),
+                          child: Column(
+                            children: List.generate(crossAxisCount, (row) {
+                              final index = colIndex * crossAxisCount + row;
+                              if (index >= p.category!.length) {
+                                return SizedBox(
+                                    width: catItemWidth, height: catItemHeight);
+                              }
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                    bottom:
+                                        row < crossAxisCount - 1 ? spacing : 0),
+                                child: buildCategoryItem(index),
+                              );
+                            }),
                           ),
                         );
                       },
-                    );
-                  }
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.9),
-                    itemCount: p.category!.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => CategoryViewScreen(
-                                        image: p.category![index].image,
-                                        category: p.category![index].name,
-                                      )));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: Column(
-                            children: [
-                              Hero(
-                                tag: p.category![index].name,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: SizedBox(
-                                      height: 60,
-                                      width: 60,
-                                      child: Image.network(
-                                        p.category![index].image,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return LottieBuilder.asset(
-                                            'assets/lottie/load.json',
-                                            fit: BoxFit.cover,
-                                          );
-                                        },
-                                        loadingBuilder:
-                                            (context, child, loadingProgress) {
-                                          if (loadingProgress == null) {
-                                            return child;
-                                          } else {
-                                            return LottieBuilder.asset(
-                                              'assets/lottie/load.json',
-                                              fit: BoxFit.cover,
-                                            );
-                                          }
-                                        },
-                                      )),
-                                ),
-                              ),
-                              AppSpacing.h5,
-                              Text(p.category![index].name),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                    ),
                   );
                 }),
                 AppSpacing.h10,
@@ -540,14 +595,17 @@ class RestuarantCard extends StatelessWidget {
                   )),
             ),
             AppSpacing.h5,
-            Text(
-              name,
-              style: TextStyle(fontWeight: FontWeight.bold),
+            SizedBox(
+              width: 160,
+              child: Text(
+                name,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             Row(
               children: [
                 Text(
-                  '3.4',
+                  '4.0',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey,
@@ -584,14 +642,10 @@ class RestuarantCard extends StatelessWidget {
                 ),
                 AppSpacing.w5,
                 Text(
-                  time,
+                  '30 min',
                   style: TextStyle(color: Colors.green, fontSize: 12),
                 ),
               ],
-            ),
-            Text(
-              'FREE delivery on first order',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),

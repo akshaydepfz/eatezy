@@ -10,6 +10,7 @@ import 'package:eatezy/view/it_park/services/it_service.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
+import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:eatezy/widgets/update_app_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -102,6 +103,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => LoginSrvice()),
         ChangeNotifierProvider(create: (context) => ItService()),
         ChangeNotifierProvider(create: (context) => ProfileService()),
+        ChangeNotifierProvider(create: (context) => SavedItemsService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

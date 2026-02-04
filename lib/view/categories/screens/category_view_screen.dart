@@ -4,8 +4,10 @@ import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
+import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shimmer/shimmer.dart';
 
 class CategoryViewScreen extends StatefulWidget {
@@ -20,24 +22,29 @@ class CategoryViewScreen extends StatefulWidget {
 class _CategoryViewScreenState extends State<CategoryViewScreen> {
   @override
   void initState() {
+    super.initState();
     Provider.of<RestuarantProvider>(context, listen: false)
         .fetchCategoryProducts(widget.category);
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SavedItemsService>(context, listen: false).loadIfNeeded();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CartService>(context);
     final restuarantProvider = Provider.of<RestuarantProvider>(context);
+    final savedService = Provider.of<SavedItemsService>(context);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColor.primary,
         foregroundColor: Colors.white,
       ),
-      body: Column(
-        children: [
-          Container(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
             padding: EdgeInsets.all(10),
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
@@ -66,7 +73,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                           fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '${restuarantProvider.catProducts!.length} items found',
+                      '${restuarantProvider.catProducts?.length ?? 0} items found',
                       style: TextStyle(color: Colors.white),
                     ),
                   ],
@@ -79,30 +86,21 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
             child: Consumer<RestuarantProvider>(
               builder: (context, p, _) {
                 if (p.catProducts == null) {
-                  return GridView.builder(
-                    physics: NeverScrollableScrollPhysics(),
+                  return ListView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 0.7,
-                    ),
                     itemCount: 6,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: Center(
-                          child: Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              width: MediaQuery.of(context).size.width,
-                              height: 100,
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Shimmer.fromColors(
+                          baseColor: Colors.grey[300]!,
+                          highlightColor: Colors.grey[100]!,
+                          child: Container(
+                            height: 160,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
@@ -110,37 +108,47 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                     },
                   );
                 }
-                return GridView.builder(
-                  physics: NeverScrollableScrollPhysics(),
+                return ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 0.7,
-                  ),
                   itemCount: p.catProducts!.length,
                   itemBuilder: (context, index) {
-                    return ProductCard(
-                      onRemove: () {
-                        provider.onItemRemove(index);
-                      },
-                      isSelected: provider.selectedProduct
-                          .contains(p.catProducts![index]),
-                      onTap: () {
-                        provider.addProduct(p.catProducts![index]);
-                      },
-                      image: p.catProducts![index].image,
-                      name: p.catProducts![index].name,
-                      price: p.catProducts![index].price.toString(),
-                      slashedPrice: p.catProducts![index].slashedPrice,
+                    final product = p.catProducts![index];
+                    final cartIndex = provider.selectedProduct
+                        .indexWhere((item) => item.id == product.id);
+                    final quantity = cartIndex != -1
+                        ? provider.selectedProduct[cartIndex].itemCount
+                        : 0;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: MenuItemCard(
+                        product: product,
+                        quantity: quantity,
+                        isSaved: savedService.isSaved(product.id),
+                        restaurantName: product.shopName,
+                        onAdd: () => provider.addProductWithVendorCheck(context, product),
+                        onRemove: () {
+                          final i = provider.selectedProduct
+                              .indexWhere((item) => item.id == product.id);
+                          if (i != -1) provider.onItemRemove(i);
+                        },
+                        onShare: () {
+                          Share.share(
+                            'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
+                            subject: product.name,
+                          );
+                        },
+                        onSaveToggle: () =>
+                            savedService.toggleSaved(product.id),
+                      ),
                     );
                   },
                 );
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: Visibility(
         visible: provider.selectedProduct.isNotEmpty,

@@ -1,6 +1,7 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/orders/screens/order_screen.dart';
+import 'package:eatezy/view/profile/screens/favorites_screen.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -86,6 +87,32 @@ class ProfileScreen extends StatelessWidget {
                                 Text(
                                   'My Orders',
                                   style: const TextStyle(fontSize: 16),
+                                )
+                              ],
+                            ),
+                          ),
+                          AppSpacing.h10,
+                          Divider(color: Colors.grey.shade300),
+                          AppSpacing.h10,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const FavoritesScreen()));
+                            },
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.bookmark_border,
+                                  size: 25,
+                                  color: AppColor.primary,
+                                ),
+                                AppSpacing.w10,
+                                const Text(
+                                  'Favorites',
+                                  style: TextStyle(fontSize: 16),
                                 )
                               ],
                             ),
