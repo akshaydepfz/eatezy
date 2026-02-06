@@ -15,6 +15,7 @@ class OrderModel {
   String deliveryType;
   bool isRated;
   double rating;
+  String ratingText;
   String confimedTime;
   String driverGoShopTime;
   String orderPickedTime;
@@ -34,6 +35,7 @@ class OrderModel {
   double packingFee;
   double platformCharge;
   List<OrderedProduct> products;
+  int preparationTimeMinutes;
 
   OrderModel(
       {required this.id,
@@ -52,12 +54,14 @@ class OrderModel {
       required this.deliveryType,
       required this.isRated,
       required this.rating,
+      this.ratingText = '',
       required this.confimedTime,
       required this.driverGoShopTime,
       required this.orderPickedTime,
       required this.onTheWayTime,
       required this.orderDeliveredTime,
       required this.deliveryCharge,
+      this.preparationTimeMinutes = 0,
       required this.lat,
       required this.long,
       required this.customerImage,
@@ -90,6 +94,7 @@ class OrderModel {
         deliveryType: data['delivery_type'] ?? '',
         isRated: data['is_rated'] ?? false,
         rating: data['star']?.toDouble() ?? 0.0,
+        ratingText: data['rating_text'] ?? '',
         confimedTime: data['confrimTime'] ?? '',
         driverGoShopTime: data['driverShop'] ?? '',
         orderPickedTime: data['pickedTime'] ?? '',
@@ -110,7 +115,10 @@ class OrderModel {
         totalPrice: data['total'] ?? '',
         notes: data['notes'] ?? '',
         packingFee: (data['packing_fee'] as num?)?.toDouble() ?? 0.0,
-        platformCharge: (data['platform_charge'] as num?)?.toDouble() ?? 0.0);
+        platformCharge: (data['platform_charge'] as num?)?.toDouble() ?? 0.0,
+        preparationTimeMinutes: data['preparation_time'] != null
+            ? int.tryParse(data['preparation_time'].toString()) ?? 0
+            : 0);
   }
 
   Map<String, dynamic> toMap() {
@@ -130,6 +138,7 @@ class OrderModel {
       'delivery_type': deliveryType,
       'is_rated': isRated,
       'star': rating,
+      'rating_text': ratingText,
       'confrimTime': confimedTime,
       'driverShop': driverGoShopTime,
       'pickedTime': orderPickedTime,
@@ -149,6 +158,7 @@ class OrderModel {
       'notes': notes,
       'packing_fee': packingFee,
       'platform_charge': platformCharge,
+      'preparation_time': preparationTimeMinutes,
     };
   }
 }

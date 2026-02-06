@@ -133,11 +133,12 @@ class OrderService extends ChangeNotifier {
             ),
             ElevatedButton(
               onPressed: () async {
-                String review = reviewController.text;
+                String review = reviewController.text.trim();
                 await FirebaseFirestore.instance.collection('cart').doc(id).set(
                   {
                     'is_rated': true,
                     'star': rating,
+                    'rating_text': review,
                   },
                   SetOptions(merge: true),
                 );

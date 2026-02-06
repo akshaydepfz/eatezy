@@ -7,10 +7,13 @@ import 'package:eatezy/model/order_model.dart';
 import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/view/cart/screens/success_screen.dart';
+import 'package:eatezy/view/cart/services/payment_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 /// Admin collection doc ID for platform settings.
 const String _adminDocId = 'vcEyyBUUm5NAwliB3dTX';
@@ -282,12 +285,69 @@ class CartService extends ChangeNotifier {
     return double.parse(totalAmount.toStringAsFixed(2));
   }
 
+  BuildContext? _paymentContext;
+
   Future<void> buyNow(
       BuildContext context, List<ProductModel> selectedProduct) async {
+    if (customer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete your profile first')),
+      );
+      return;
+    }
+
+    final totalAmount = getTotalAmount(0, selectedCoupon);
+    if (totalAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid order amount')),
+      );
+      return;
+    }
+
     isLoading = true;
     notifyListeners();
+    _paymentContext = context;
 
-    // Group products by vendor
+    final paymentProvider =
+        Provider.of<PaymentProvider>(context, listen: false);
+    paymentProvider.openCheckout(
+      totalAmount,
+      'EatEzy',
+      'Food order payment',
+      customerName: customer!.name,
+      onSuccess: (_) => _placeOrderAndNavigate(),
+      onError: (PaymentFailureResponse response) {
+        isLoading = false;
+        notifyListeners();
+        if (_paymentContext != null && _paymentContext!.mounted) {
+          ScaffoldMessenger.of(_paymentContext!).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Payment failed: ${response.message ?? "Unknown error"}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        _paymentContext = null;
+      },
+      onExternalWallet: (_) {
+        isLoading = false;
+        notifyListeners();
+        if (_paymentContext != null && _paymentContext!.mounted) {
+          ScaffoldMessenger.of(_paymentContext!).showSnackBar(
+            const SnackBar(
+                content: Text('Payment via external wallet is not supported for orders. Please use Razorpay.')),
+          );
+        }
+        _paymentContext = null;
+      },
+    );
+  }
+
+  Future<void> _placeOrderAndNavigate() async {
+    final context = _paymentContext;
+    if (context == null || !context.mounted) return;
+
     Map<String, List<ProductModel>> productsByVendor = {};
     for (var product in selectedProduct) {
       productsByVendor.putIfAbsent(product.vendorID, () => []).add(product);
@@ -309,14 +369,14 @@ class CartService extends ChangeNotifier {
       }).toList();
 
       OrderModel order = OrderModel(
-          id: UniqueKey().toString(), // or use uuid package
+          id: UniqueKey().toString(),
           uuid: FirebaseAuth.instance.currentUser!.uid,
           vendorId: vendorId,
           createdDate: DateTime.now().toString(),
           address: '',
           customerName: customer!.name,
           phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
-          isPaid: false,
+          isPaid: true,
           orderStatus: 'Waiting',
           deliveryBoyId: '',
           isDelivered: false,
@@ -345,7 +405,6 @@ class CartService extends ChangeNotifier {
           platformCharge: cartPlatformFee);
 
       sendFCMMessage(findVendorById(vendorId)!.fcmToken);
-
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
 
@@ -355,11 +414,14 @@ class CartService extends ChangeNotifier {
     notesController.clear();
     selectedProduct.clear();
     notifyListeners();
+    _paymentContext = null;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => SuccessScreen()),
-    );
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SuccessScreen()),
+      );
+    }
   }
 
   Future<String> getAccessToken() async {

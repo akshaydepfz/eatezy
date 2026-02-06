@@ -1,6 +1,7 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/orders/screens/order_screen.dart';
+import 'package:eatezy/view/profile/screens/edit_profile_screen.dart';
 import 'package:eatezy/view/profile/screens/favorites_screen.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:flutter/cupertino.dart';
@@ -60,9 +61,41 @@ class ProfileScreen extends StatelessWidget {
                           AppSpacing.h10,
                           Divider(color: Colors.grey.shade300),
                           AppSpacing.h10,
-                          const ProfileTile(
+                          ProfileTile(
                             icon: 'assets/icons/iphone.png',
-                            label: "+91 9946152058",
+                            label: provider.customer!.phoneNumber,
+                          ),
+                          AppSpacing.h10,
+                          Divider(color: Colors.grey.shade300),
+                          AppSpacing.h10,
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const EditProfileScreen(),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  height: 25,
+                                  width: 25,
+                                  child: Icon(
+                                    Icons.edit,
+                                    size: 25,
+                                    color: AppColor.primary,
+                                  ),
+                                ),
+                                AppSpacing.w10,
+                                const Text(
+                                  'Edit Profile',
+                                  style: TextStyle(fontSize: 16),
+                                )
+                              ],
+                            ),
                           ),
                           AppSpacing.h10,
                           Divider(color: Colors.grey.shade300),

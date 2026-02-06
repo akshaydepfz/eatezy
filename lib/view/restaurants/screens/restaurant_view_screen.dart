@@ -64,7 +64,6 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                         : Icon(Icons.image_not_supported, color: Colors.grey),
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
                         onPressed: () {
@@ -75,24 +74,6 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                           color: Colors.white,
                         ),
                       ),
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.favorite,
-                              color: Colors.white,
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.share,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      )
                     ],
                   ),
                   Positioned(
@@ -1094,14 +1075,6 @@ class MenuItemCard extends StatelessWidget {
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'NOT ELIGIBLE FOR COUPONS',
-                        style: GoogleFonts.rubik(
-                          fontSize: 11,
-                          color: Colors.grey.shade500,
-                        ),
                       ),
                       const SizedBox(height: 10),
                       Row(

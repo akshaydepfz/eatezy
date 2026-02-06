@@ -29,64 +29,67 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool isLoading = true;
+  /// Resolved chat ID - set when we create a new chat (chatId was '')
+  String? _resolvedChatId;
+
+  String get _effectiveChatId => _resolvedChatId ?? widget.chatId;
 
   @override
   void initState() {
     super.initState();
-    checkChatExist();
-    initializeChat();
+    _init();
   }
 
-  void checkChatExist() async {
+  Future<void> _init() async {
+    await checkChatExist();
+    await initializeChat();
+  }
+
+  Future<void> checkChatExist() async {
     if (widget.chatId == '') {
-      final dummyMessage = "Hello!";
-      final timestamp = FieldValue.serverTimestamp();
       String doc =
           "${FirebaseAuth.instance.currentUser!.uid}${widget.vendorId}";
+      final chatRef = FirebaseFirestore.instance.collection('chats').doc(doc);
+      final chatSnap = await chatRef.get();
 
-      await FirebaseFirestore.instance.collection('chats').doc(doc).set({
-        'lastMessage': dummyMessage,
-        "lastMessageTime": timestamp,
-        "customer_name": widget.customerName,
-        "customer_image": widget.customerImage,
-        "participants": [
-          widget.vendorId,
-          FirebaseAuth.instance.currentUser!.uid,
-        ]
-      });
+      if (!chatSnap.exists) {
+        final timestamp = FieldValue.serverTimestamp();
+        await chatRef.set({
+          'lastMessage': '',
+          'lastMessageTime': timestamp,
+          'customer_name': widget.customerName,
+          'customer_image': widget.customerImage,
+          'participants': [
+            widget.vendorId,
+            FirebaseAuth.instance.currentUser!.uid,
+          ]
+        });
 
-      await FirebaseFirestore.instance
-          .collection('cart')
-          .doc(widget.orderId)
-          .update({"chat_id": doc});
-      await FirebaseFirestore.instance
-          .collection('chats')
-          .doc(doc)
-          .collection('messages')
-          .add({
-        'text': dummyMessage,
-        'senderToken': FirebaseAuth.instance.currentUser!.uid,
-        'timestamp': timestamp,
-        'isRead': false,
-      });
+        if (widget.orderId.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection('cart')
+              .doc(widget.orderId)
+              .update({"chat_id": doc});
+        }
+      }
 
-      await FirebaseFirestore.instance.collection('chats').doc(doc).update({
-        'lastMessage': dummyMessage,
-        'lastMessageTime': timestamp,
-      });
+      setState(() => _resolvedChatId = doc);
     }
   }
 
-  void initializeChat() async {
+  Future<void> initializeChat() async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-
-    await chatProvider.markMessagesAsRead(widget.chatId);
+    final chatId = _resolvedChatId ?? widget.chatId;
+    if (chatId.isNotEmpty) {
+      await chatProvider.markMessagesAsRead(chatId);
+    }
     setState(() => isLoading = false);
   }
 
   void handleSendMessage(ChatProvider provider) async {
-    await provider.sendMessage(
-        widget.chatId, _controller.text, widget.vendorToken);
+    final chatId = _effectiveChatId;
+    if (chatId.isEmpty) return;
+    await provider.sendMessage(chatId, _controller.text, widget.vendorToken);
     _controller.clear();
     scrollToBottom();
   }
@@ -107,7 +110,7 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
 
-    if (isLoading || chatProvider.userToken == null) {
+    if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
@@ -120,7 +123,7 @@ class _ChatViewScreenState extends State<ChatViewScreen> {
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: chatProvider.getMessagesStream(
-                  widget.chatId, widget.vendorId),
+                  _effectiveChatId, widget.vendorId),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());

@@ -7,9 +7,12 @@ import 'package:eatezy/view/home/screens/select_location_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/custom_icon.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
+import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
+import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:eatezy/view/search/screens/search_screen.dart';
 import 'package:eatezy/view/top_dish/screens/top_dish_screen.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -375,46 +378,71 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 AppSpacing.h10,
-                SizedBox(
-                  height: 200,
-                  child: Consumer<HomeProvider>(builder: (context, p, _) {
-                    if (p.topProducts == null) {
-                      return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          shrinkWrap: true,
-                          itemCount: 6,
-                          itemBuilder: (context, i) {
-                            return Padding(
-                              padding: const EdgeInsets.all(0.0),
-                              child: Center(
-                                child: Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        color: Colors.grey[300],
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                    width: MediaQuery.of(context).size.width,
-                                    height: 200,
-                                  ),
-                                ),
-                              ),
-                            );
-                          });
-                    }
+                Consumer<HomeProvider>(builder: (context, p, _) {
+                  if (p.topProducts == null) {
                     return ListView.builder(
-                        scrollDirection: Axis.horizontal,
+                        physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: p.topProducts!.length,
+                        itemCount: 6,
                         itemBuilder: (context, i) {
-                          return TopDishCard(
-                              image: p.topProducts![i].image,
-                              name: p.topProducts![i].name,
-                              price: p.topProducts![i].price.toString());
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          );
                         });
-                  }),
-                ),
+                  }
+                  if (p.topProducts!.isEmpty) return const SizedBox.shrink();
+                  final cartProvider = Provider.of<CartService>(context);
+                  final savedService = Provider.of<SavedItemsService>(context);
+                  return ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: p.topProducts!.length,
+                      itemBuilder: (context, i) {
+                        final product = p.topProducts![i];
+                        final cartIndex = cartProvider.selectedProduct
+                            .indexWhere((item) => item.id == product.id);
+                        final quantity = cartIndex != -1
+                            ? cartProvider.selectedProduct[cartIndex].itemCount
+                            : 0;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: MenuItemCard(
+                            product: product,
+                            offer: null,
+                            quantity: quantity,
+                            isSaved: savedService.isSaved(product.id),
+                            showRestaurantName: true,
+                            onAdd: () {
+                              cartProvider.addProductWithVendorCheck(
+                                  context, product);
+                            },
+                            onRemove: () {
+                              if (cartIndex != -1) {
+                                cartProvider.onItemRemove(cartIndex);
+                              }
+                            },
+                            onShare: () {
+                              Share.share(
+                                'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
+                                subject: product.name,
+                              );
+                            },
+                            onSaveToggle: () =>
+                                savedService.toggleSaved(product.id),
+                          ),
+                        );
+                      });
+                }),
                 AppSpacing.h20,
                 Consumer<HomeProvider>(builder: (context, p, _) {
                   if (p.banners.isEmpty) {
@@ -460,85 +488,93 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          
         ),
       ),
-    );
-  }
-}
-
-class TopDishCard extends StatelessWidget {
-  const TopDishCard({
-    super.key,
-    required this.image,
-    required this.name,
-    required this.price,
-  });
-  final String image;
-  final String name;
-  final String price;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => TopDishScreen()));
-      },
-      child: Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                  height: 100,
-                  width: 100,
-                  child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return LottieBuilder.asset(
-                        'assets/lottie/load.json',
-                        fit: BoxFit.cover,
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      } else {
-                        return LottieBuilder.asset(
-                          'assets/lottie/load.json',
-                          fit: BoxFit.cover,
-                        );
-                      }
-                    },
-                  )),
-            ),
-            AppSpacing.h5,
-            SizedBox(
-                width: 100,
-                child: Text(
-                  name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+      bottomNavigationBar: Consumer<CartService>(
+        builder: (context, cartService, _) {
+          return Visibility(
+            visible: cartService.selectedProduct.isNotEmpty,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CartScreen(),
                   ),
-                )),
-            Text('₹$price'),
-            AppSpacing.h5,
-            Container(
-              padding: EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(5)),
-              child: Text(
-                '#1 MOST LIKED',
-                style: TextStyle(fontSize: 10),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                height: 60,
+                width: MediaQuery.of(context).size.width,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(60),
+                  color: AppColor.primary,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      height: 40,
+                      width: 100,
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        scrollDirection: Axis.horizontal,
+                        itemCount: cartService.selectedProduct.length,
+                        itemBuilder: (context, index) {
+                          return Transform.translate(
+                            offset: Offset(-index * 40, 0),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(40),
+                                child: Image.network(
+                                  cartService.selectedProduct[index].image,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'View cart',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          "${cartService.selectedProduct.length} ITEMS",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    AppSpacing.w20,
+                    CircleAvatar(
+                      backgroundColor: Colors.green.shade500,
+                      child: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }

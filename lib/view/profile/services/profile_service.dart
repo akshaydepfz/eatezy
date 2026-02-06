@@ -1,11 +1,15 @@
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/customer_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 class ProfileService extends ChangeNotifier {
   CustomerModel? customer;
   bool isPushNotifed = true;
+  bool _isUpdating = false;
+  bool get isUpdating => _isUpdating;
 
   void changeNotified(bool v) {
     isPushNotifed = v;
@@ -25,6 +29,80 @@ class ProfileService extends ChangeNotifier {
         notifyListeners();
       }
     } catch (_) {}
+  }
+
+  Future<String> _uploadImageToStorage(File imageFile) async {
+    final ref = FirebaseStorage.instance.ref().child(
+        'profile_images/${FirebaseAuth.instance.currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+    final task = ref.putFile(imageFile);
+    final snapshot = await task;
+    return await snapshot.ref.getDownloadURL();
+  }
+
+  Future<void> updateProfile(
+    BuildContext context, {
+    required String name,
+    required String email,
+    File? newProfileImage,
+  }) async {
+    if (customer == null) return;
+    if (name.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your name'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    if (email.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    _isUpdating = true;
+    notifyListeners();
+
+    try {
+      String profileImageUrl = customer!.image;
+      if (newProfileImage != null) {
+        profileImageUrl = await _uploadImageToStorage(newProfileImage);
+      }
+
+      await FirebaseFirestore.instance
+          .collection('customers')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        'name': name.trim(),
+        'email': email.trim(),
+        'profile_image': profileImageUrl,
+      });
+
+      await getCustomer();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
   }
 
   void showLogoutConfirmationDialog(BuildContext context) {

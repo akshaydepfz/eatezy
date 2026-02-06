@@ -49,11 +49,14 @@ class DeliveryTab extends StatelessWidget {
                   name: name,
                   totalPrice: order.totalPrice,
                   itemCount: totalQuantity.toString(),
+                  orderStatus: order.orderStatus,
+                  preparationTimeMinutes: order.preparationTimeMinutes,
                   notes: order.notes,
                   packingFee: order.packingFee,
                   platformFee: order.platformCharge,
                   isRated: order.isRated,
                   rating: order.rating,
+                  ratingText: order.ratingText,
                   onReviewTap: () => p.showReviewDialog(context, order.id),
                 ),
               ),
@@ -65,15 +68,29 @@ class DeliveryTab extends StatelessWidget {
   }
 }
 
+String _formatOrderStatus(String status) {
+  if (status.isEmpty) return status;
+  return status
+      .replaceAll('_', ' ')
+      .split(' ')
+      .map((w) => w.isEmpty
+          ? w
+          : '${w[0].toUpperCase()}${w.length > 1 ? w.substring(1).toLowerCase() : ''}')
+      .join(' ');
+}
+
 class _DeliveryOrderCard extends StatelessWidget {
   const _DeliveryOrderCard({
     required this.image,
     required this.name,
     required this.totalPrice,
     required this.itemCount,
+    required this.orderStatus,
     required this.onReviewTap,
     required this.isRated,
     required this.rating,
+    this.ratingText = '',
+    this.preparationTimeMinutes = 0,
     this.notes = '',
     this.packingFee = 0.0,
     this.platformFee = 0.0,
@@ -83,12 +100,15 @@ class _DeliveryOrderCard extends StatelessWidget {
   final String name;
   final String totalPrice;
   final String itemCount;
+  final String orderStatus;
+  final int preparationTimeMinutes;
   final String notes;
   final double packingFee;
   final double platformFee;
   final VoidCallback onReviewTap;
   final double rating;
   final bool isRated;
+  final String ratingText;
 
   @override
   Widget build(BuildContext context) {
@@ -163,30 +183,53 @@ class _DeliveryOrderCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD1EEDB),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'Completed',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.green.shade800,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '$itemCount items',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              size: 18,
+                              color: Colors.grey.shade600,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Status',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _formatOrderStatus(orderStatus),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.green.shade800,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -204,13 +247,66 @@ class _DeliveryOrderCard extends StatelessWidget {
               ),
             ],
           ),
-          if (notes.trim().isNotEmpty || packingFee > 0 || platformFee > 0) ...[
+          if (notes.trim().isNotEmpty ||
+              packingFee > 0 ||
+              platformFee > 0 ||
+              preparationTimeMinutes > 0) ...[
             Divider(height: 1, color: Colors.grey.shade200),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (preparationTimeMinutes > 0) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Preparation time',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade600,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$preparationTimeMinutes min',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (notes.trim().isNotEmpty ||
+                        packingFee > 0 ||
+                        platformFee > 0)
+                      const SizedBox(height: 8),
+                  ],
                   if (notes.trim().isNotEmpty) ...[
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +325,8 @@ class _DeliveryOrderCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (packingFee > 0 || platformFee > 0) const SizedBox(height: 8),
+                    if (packingFee > 0 || platformFee > 0)
+                      const SizedBox(height: 8),
                   ],
                   if (packingFee > 0)
                     Row(
@@ -285,16 +382,36 @@ class _DeliveryOrderCard extends StatelessWidget {
             child: Row(
               children: [
                 if (isRated)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(5, (index) {
-                      final filled = index < rating.round();
-                      return Icon(
-                        filled ? Icons.star_rounded : Icons.star_border_rounded,
-                        color: filled ? Colors.amber : Colors.grey.shade400,
-                        size: 24,
-                      );
-                    }),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (index) {
+                            final filled = index < rating.round();
+                            return Icon(
+                              filled ? Icons.star_rounded : Icons.star_border_rounded,
+                              color: filled ? Colors.amber : Colors.grey.shade400,
+                              size: 24,
+                            );
+                          }),
+                        ),
+                        if (ratingText.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            ratingText,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade700,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
                   )
                 else
                   Expanded(
