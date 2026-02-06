@@ -53,7 +53,7 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  /// Starts listening to vendors in real time. Only vendors with is_active == true are shown.
+  /// Starts listening to vendors in real time. All vendors are shown; inactive ones display as "Closed" with opening/closing times.
   void startVendorsStream() {
     if (_vendorsSubscription != null) return;
     _vendorsSubscription = FirebaseFirestore.instance
@@ -64,7 +64,6 @@ class HomeProvider extends ChangeNotifier {
         vendors = snapshot.docs
             .map((doc) => VendorModel.fromFirestore(
                 doc.data() as Map<String, dynamic>, doc.id))
-            .where((v) => v.isActive)
             .toList();
         notifyListeners();
       } catch (e) {

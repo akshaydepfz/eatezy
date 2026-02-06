@@ -64,9 +64,10 @@ class OrderService extends ChangeNotifier {
   }
 
   VendorModel? findVendorById(String id) {
-    return vendors.firstWhere(
-      (vendor) => vendor.id == id,
-    );
+    for (final vendor in vendors) {
+      if (vendor.id == id) return vendor;
+    }
+    return null;
   }
 
   Future<void> cancellOrder(

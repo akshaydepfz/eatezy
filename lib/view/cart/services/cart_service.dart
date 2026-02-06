@@ -210,7 +210,8 @@ class CartService extends ChangeNotifier {
   double? get cartPackingFee {
     final id = cartVendorId;
     if (id == null) return null;
-    return findVendorById(id)?.packingFee;
+    final fee = findVendorById(id)?.packingFee;
+    return fee != null ? double.tryParse(fee) : null;
   }
 
   /// Platform fee from admin settings (0 if not set).
@@ -336,7 +337,8 @@ class CartService extends ChangeNotifier {
         if (_paymentContext != null && _paymentContext!.mounted) {
           ScaffoldMessenger.of(_paymentContext!).showSnackBar(
             const SnackBar(
-                content: Text('Payment via external wallet is not supported for orders. Please use Razorpay.')),
+                content: Text(
+                    'Payment via external wallet is not supported for orders. Please use Razorpay.')),
           );
         }
         _paymentContext = null;
@@ -401,10 +403,15 @@ class CartService extends ChangeNotifier {
           products: orderedProducts,
           discount: selectedCoupon.toString(),
           notes: notesController.text.trim(),
-          packingFee: findVendorById(vendorId)?.packingFee ?? 0.0,
+          packingFee:
+              double.tryParse(findVendorById(vendorId)?.packingFee ?? '0') ??
+                  0.0,
           platformCharge: cartPlatformFee);
 
-      sendFCMMessage(findVendorById(vendorId)!.fcmToken);
+      final vendorFcm = findVendorById(vendorId)?.fcmToken;
+      if (vendorFcm != null && vendorFcm.isNotEmpty) {
+        sendFCMMessage(vendorFcm);
+      }
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
 

@@ -11,7 +11,6 @@ import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:eatezy/view/search/screens/search_screen.dart';
-import 'package:eatezy/view/top_dish/screens/top_dish_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -307,14 +306,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.rubik(
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
-                    IconButton(
-                        onPressed: () {
-                          provider.onSelectedChange(2);
-                        },
-                        icon: Icon(Icons.arrow_forward))
+                    // IconButton(
+                    //     onPressed: () {
+                    //       provider.onSelectedChange(2);
+                    //     },
+                    //     icon: Icon(Icons.arrow_forward))
                   ],
                 ),
-                AppSpacing.h10,
+                AppSpacing.h20,
                 Consumer<HomeProvider>(builder: (context, p, _) {
                   if (p.vendors == null) {
                     return Padding(
@@ -335,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
                   return SizedBox(
-                    height: 180,
+                    height: 200,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
@@ -343,7 +342,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, i) {
                           return RestuarantCard(
                               distance: p.vendors![i].estimateDistance,
-                              time: p.vendors![i].estimateTime,
+                              time: '20 to 30 mints',
+                              isActive: p.vendors![i].isActive,
+                              openingTime: p.vendors![i].openingTime,
+                              closingTime: p.vendors![i].closingTime,
                               onTap: () {
                                 Navigator.push(
                                     context,
@@ -367,17 +369,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: GoogleFonts.rubik(
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
-                    IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => TopDishScreen()));
-                        },
-                        icon: Icon(Icons.arrow_forward))
                   ],
                 ),
-                AppSpacing.h10,
+                AppSpacing.h15,
                 Consumer<HomeProvider>(builder: (context, p, _) {
                   if (p.topProducts == null) {
                     return ListView.builder(
@@ -488,7 +482,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          
         ),
       ),
       bottomNavigationBar: Consumer<CartService>(
@@ -506,7 +499,8 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: Container(
                 padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+                margin:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
                 height: 60,
                 width: MediaQuery.of(context).size.width,
                 decoration: BoxDecoration(
@@ -527,7 +521,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           return Transform.translate(
                             offset: Offset(-index * 40, 0),
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(40),
                                 child: Image.network(
@@ -588,102 +583,152 @@ class RestuarantCard extends StatelessWidget {
     required this.onTap,
     required this.distance,
     required this.time,
+    required this.isActive,
+    required this.openingTime,
+    required this.closingTime,
   });
   final String image;
   final String name;
   final Function() onTap;
   final String distance;
   final String time;
+  final bool isActive;
+  final String openingTime;
+  final String closingTime;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(right: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                  height: 100,
-                  width: 160,
-                  child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return LottieBuilder.asset(
-                        'assets/lottie/load.json',
+    return Opacity(
+      opacity: isActive ? 1 : 0.65,
+      child: GestureDetector(
+        onTap: isActive ? onTap : null,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      height: 100,
+                      width: 160,
+                      child: Image.network(
+                        image,
                         fit: BoxFit.cover,
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      } else {
-                        return LottieBuilder.asset(
-                          'assets/lottie/load.json',
-                          fit: BoxFit.cover,
-                        );
-                      }
-                    },
-                  )),
-            ),
-            AppSpacing.h5,
-            SizedBox(
-              width: 160,
-              child: Text(
-                name,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                        errorBuilder: (context, error, stackTrace) {
+                          return LottieBuilder.asset(
+                            'assets/lottie/load.json',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return LottieBuilder.asset(
+                              'assets/lottie/load.json',
+                              fit: BoxFit.cover,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    if (!isActive)
+                      Container(
+                        height: 100,
+                        width: 160,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Closed',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            Row(
-              children: [
-                Text(
-                  '4.0',
-                  style: TextStyle(
-                    fontSize: 12,
+              AppSpacing.h5,
+              SizedBox(
+                width: 160,
+                child: Text(
+                  name,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    '4.0',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Icon(
+                    Icons.star,
+                    size: 15,
                     color: Colors.grey,
                   ),
+                  AppSpacing.w5,
+                  Text(
+                    '(200+)',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  AppSpacing.w5,
+                  Text(
+                    '|',
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  AppSpacing.w5,
+                  Text(
+                    distance,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  Icon(
+                    isActive ? Icons.schedule : Icons.schedule_outlined,
+                    size: 12,
+                    color: isActive ? Colors.green : Colors.grey,
+                  ),
+                  AppSpacing.w5,
+                  Text(
+                    isActive
+                        ? '$openingTime – $closingTime'
+                        : 'Closed · $openingTime – $closingTime',
+                    style: TextStyle(
+                      color: isActive ? Colors.green : Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+              if (!isActive)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Closed',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-                Icon(
-                  Icons.star,
-                  size: 15,
-                  color: Colors.grey,
-                ),
-                AppSpacing.w5,
-                Text(
-                  '(200+)',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                AppSpacing.w5,
-                Text(
-                  '|',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                AppSpacing.w5,
-                Text(
-                  distance,
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                )
-              ],
-            ),
-            Row(
-              children: [
-                Icon(
-                  Icons.schedule,
-                  size: 12,
-                  color: Colors.green,
-                ),
-                AppSpacing.w5,
-                Text(
-                  '30 min',
-                  style: TextStyle(color: Colors.green, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

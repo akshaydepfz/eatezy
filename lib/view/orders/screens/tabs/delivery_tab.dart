@@ -1,6 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
+import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -58,6 +59,23 @@ class DeliveryTab extends StatelessWidget {
                   rating: order.rating,
                   ratingText: order.ratingText,
                   onReviewTap: () => p.showReviewDialog(context, order.id),
+                  onOrderAgainTap: () {
+                    final vendor = p.findVendorById(order.vendorId);
+                    if (vendor != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              RestaurantViewScreen(vendor: vendor),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Restaurant not found')),
+                      );
+                    }
+                  },
                 ),
               ),
             );
@@ -87,6 +105,7 @@ class _DeliveryOrderCard extends StatelessWidget {
     required this.itemCount,
     required this.orderStatus,
     required this.onReviewTap,
+    required this.onOrderAgainTap,
     required this.isRated,
     required this.rating,
     this.ratingText = '',
@@ -106,6 +125,7 @@ class _DeliveryOrderCard extends StatelessWidget {
   final double packingFee;
   final double platformFee;
   final VoidCallback onReviewTap;
+  final VoidCallback onOrderAgainTap;
   final double rating;
   final bool isRated;
   final String ratingText;
@@ -425,7 +445,7 @@ class _DeliveryOrderCard extends StatelessWidget {
                 Expanded(
                   child: _FilledActionButton(
                     label: 'Order Again',
-                    onTap: () {},
+                    onTap: onOrderAgainTap,
                   ),
                 ),
               ],
