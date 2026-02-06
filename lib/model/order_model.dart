@@ -11,6 +11,7 @@ class OrderModel {
   String deliveryBoyId;
   bool isDelivered;
   bool isCancelled;
+  String cancellationReason;
   String deliveryType;
   bool isRated;
   double rating;
@@ -30,6 +31,8 @@ class OrderModel {
   String discount;
   String totalPrice;
   String notes;
+  double packingFee;
+  double platformCharge;
   List<OrderedProduct> products;
 
   OrderModel(
@@ -45,6 +48,7 @@ class OrderModel {
       required this.deliveryBoyId,
       required this.isDelivered,
       required this.isCancelled,
+      this.cancellationReason = '',
       required this.deliveryType,
       required this.isRated,
       required this.rating,
@@ -64,7 +68,9 @@ class OrderModel {
       required this.products,
       required this.discount,
       required this.totalPrice,
-      this.notes = ''});
+      this.notes = '',
+      this.packingFee = 0.0,
+      this.platformCharge = 0.0});
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
@@ -80,6 +86,7 @@ class OrderModel {
         deliveryBoyId: data['deliveryBoyId'] ?? '',
         isDelivered: data['isDelivered'] ?? false,
         isCancelled: data['isCancelled'] ?? false,
+        cancellationReason: data['cancellation_reason'] ?? '',
         deliveryType: data['delivery_type'] ?? '',
         isRated: data['is_rated'] ?? false,
         rating: data['star']?.toDouble() ?? 0.0,
@@ -101,7 +108,9 @@ class OrderModel {
             .toList(),
         discount: data['discount'] ?? '',
         totalPrice: data['total'] ?? '',
-        notes: data['notes'] ?? '');
+        notes: data['notes'] ?? '',
+        packingFee: (data['packing_fee'] as num?)?.toDouble() ?? 0.0,
+        platformCharge: (data['platform_charge'] as num?)?.toDouble() ?? 0.0);
   }
 
   Map<String, dynamic> toMap() {
@@ -117,6 +126,7 @@ class OrderModel {
       'deliveryBoyId': deliveryBoyId,
       'isDelivered': isDelivered,
       'isCancelled': isCancelled,
+      'cancellation_reason': cancellationReason,
       'delivery_type': deliveryType,
       'is_rated': isRated,
       'star': rating,
@@ -137,6 +147,8 @@ class OrderModel {
       'discount': discount,
       'total': totalPrice,
       'notes': notes,
+      'packing_fee': packingFee,
+      'platform_charge': platformCharge,
     };
   }
 }

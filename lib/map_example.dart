@@ -305,10 +305,13 @@ class _OSMTrackingScreenState extends State<OSMTrackingScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.vendorName,
-                                style: TextStyle(
-                                    fontSize: 16, color: Colors.white),
+                              SizedBox(
+                                width: MediaQuery.of(context).size.width * .5,
+                                child: Text(
+                                  widget.vendorName,
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
                               ),
                               Text(
                                 "+91 ${widget.vendorPhone}",

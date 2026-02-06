@@ -20,6 +20,7 @@ class OrderService extends ChangeNotifier {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('cart')
           .where('uuid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .orderBy('created_date', descending: true)
           .get();
       orders = snapshot.docs.map((doc) {
         return OrderModel.fromFirestore(
@@ -68,11 +69,12 @@ class OrderService extends ChangeNotifier {
     );
   }
 
-  Future<void> cancellOrder(BuildContext context, String id) async {
-    await FirebaseFirestore.instance
-        .collection('cart')
-        .doc(id)
-        .update({"isCancelled": true});
+  Future<void> cancellOrder(
+      BuildContext context, String id, String cancellationReason) async {
+    await FirebaseFirestore.instance.collection('cart').doc(id).update({
+      "isCancelled": true,
+      "cancellation_reason": cancellationReason,
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Order Cancelled by you!")),
     );

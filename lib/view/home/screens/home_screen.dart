@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     Provider.of<HomeProvider>(context, listen: false).loadSavedLocation();
-    Provider.of<HomeProvider>(context, listen: false).gettVendors();
+    Provider.of<HomeProvider>(context, listen: false).startVendorsStream();
     Provider.of<HomeProvider>(context, listen: false).fetchCategory();
     Provider.of<HomeProvider>(context, listen: false).fetchTopProducts();
     Provider.of<HomeProvider>(context, listen: false).updateAdminFcmToken();
@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Provider.of<HomeProvider>(context, listen: false)
                               .loadSavedLocation();
                           Provider.of<HomeProvider>(context, listen: false)
-                              .gettVendors();
+                              .startVendorsStream();
                         });
                       },
                       child: Row(

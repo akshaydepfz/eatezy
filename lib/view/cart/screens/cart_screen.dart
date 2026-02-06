@@ -266,13 +266,31 @@ class _CartScreenState extends State<CartScreen> {
                         AppSpacing.h15,
                         _SummaryRow(
                             label: 'Subtotal',
-                            value: '₹${provider.getTotalAmount(0, 0)}'),
+                            value:
+                                '₹${provider.getSubtotal().toStringAsFixed(2)}'),
+                        if (provider.cartPackingFee != null &&
+                            provider.cartPackingFee! > 0) ...[
+                          AppSpacing.h10,
+                          _SummaryRow(
+                            label: 'Packing fee',
+                            value:
+                                '₹${provider.cartPackingFee!.toStringAsFixed(2)}',
+                          ),
+                        ],
+                        if (provider.cartPlatformFee > 0) ...[
+                          AppSpacing.h10,
+                          _SummaryRow(
+                            label: 'Platform fee',
+                            value:
+                                '₹${provider.cartPlatformFee.toStringAsFixed(2)}',
+                          ),
+                        ],
                         if (provider.selectedCoupon != null) ...[
                           AppSpacing.h10,
                           _SummaryRow(
                             label: 'Discount',
                             value: provider.getDiscountAmount(
-                                provider.getTotalAmount(0, 0),
+                                provider.getSubtotal(),
                                 double.parse(
                                     provider.selectedCoupon.toString())),
                             valueColor: Colors.green.shade700,

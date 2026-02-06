@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eatezy/model/offer_model.dart';
 import 'package:eatezy/model/product_model.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -7,6 +8,7 @@ class RestuarantProvider extends ChangeNotifier {
   List<ProductModel>? products;
   List<ProductModel>? featuredProducts;
   List<ProductModel>? catProducts;
+  List<OfferModel>? offers;
 
   Future<void> fetchProducts(String vendorID) async {
     products = null;
@@ -25,6 +27,37 @@ class RestuarantProvider extends ChangeNotifier {
     } catch (e) {
       print('Error fetching products: $e');
       products = null;
+    }
+  }
+
+  Future<void> fetchOffers(String vendorID) async {
+    offers = null;
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('offers')
+          .where('vendorId', isEqualTo: vendorID)
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      offers = snapshot.docs
+          .map((doc) => OfferModel.fromFirestore(
+              doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+
+      notifyListeners();
+    } catch (e) {
+      print('Error fetching offers: $e');
+      offers = null;
+      notifyListeners();
+    }
+  }
+
+  OfferModel? getOfferForProduct(String productId) {
+    if (offers == null) return null;
+    try {
+      return offers!.firstWhere((o) => o.productId == productId);
+    } catch (_) {
+      return null;
     }
   }
 

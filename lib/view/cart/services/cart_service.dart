@@ -12,12 +12,18 @@ import 'package:flutter/material.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 
+/// Admin collection doc ID for platform settings.
+const String _adminDocId = 'vcEyyBUUm5NAwliB3dTX';
+
 class CartService extends ChangeNotifier {
   List<ProductModel> selectedProduct = [];
   List<VendorModel> vendors = [];
   CustomerModel? customer;
   List<CouponModel>? coupon;
   int? selectedCoupon;
+
+  /// Platform charge from admin collection (platform_charge field).
+  double? platformCharge;
 
   TextEditingController couponController = TextEditingController();
   TextEditingController notesController = TextEditingController();
@@ -31,9 +37,29 @@ class CartService extends ChangeNotifier {
             doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
 
+      await _fetchPlatformCharge();
       notifyListeners();
     } catch (e) {
       print('Error fetching vendor: $e');
+    }
+  }
+
+  Future<void> _fetchPlatformCharge() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('admin')
+          .doc(_adminDocId)
+          .get();
+      if (doc.exists && doc.data() != null) {
+        final value = doc.data()!['platform_charge'];
+        if (value != null) {
+          platformCharge = (value is num)
+              ? value.toDouble()
+              : double.tryParse(value.toString());
+        }
+      }
+    } catch (e) {
+      print('Error fetching platform charge: $e');
     }
   }
 
@@ -53,9 +79,11 @@ class CartService extends ChangeNotifier {
   }
 
   VendorModel? findVendorById(String id) {
-    return vendors.firstWhere(
-      (vendor) => vendor.id == id,
-    );
+    try {
+      return vendors.firstWhere((vendor) => vendor.id == id);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> getCustomer() async {
@@ -175,6 +203,16 @@ class CartService extends ChangeNotifier {
   String? get cartVendorId =>
       selectedProduct.isNotEmpty ? selectedProduct.first.vendorID : null;
 
+  /// Packing fee for the current cart's vendor (null or 0 when not applicable).
+  double? get cartPackingFee {
+    final id = cartVendorId;
+    if (id == null) return null;
+    return findVendorById(id)?.packingFee;
+  }
+
+  /// Platform fee from admin settings (0 if not set).
+  double get cartPlatformFee => platformCharge ?? 0.0;
+
   /// Adds product only if cart is empty or from same vendor. If cart has items
   /// from another restaurant, shows a dialog to either cancel or clear cart and add.
   Future<void> addProductWithVendorCheck(
@@ -214,11 +252,16 @@ class CartService extends ChangeNotifier {
     }
   }
 
-  double getTotalAmount(int deliveryCharge, int? discountPercentage) {
-    double totalAmount = selectedProduct.fold(
+  /// Sum of (price × quantity) for all cart items (no discount, packing or delivery).
+  double getSubtotal() {
+    return selectedProduct.fold(
       0.0,
       (sum, product) => sum + (product.price * product.itemCount),
     );
+  }
+
+  double getTotalAmount(int deliveryCharge, int? discountPercentage) {
+    double totalAmount = getSubtotal();
 
     if (discountPercentage != null) {
       double discountAmount = totalAmount * (discountPercentage / 100);
@@ -228,6 +271,13 @@ class CartService extends ChangeNotifier {
     if (deliveryCharge != 0) {
       totalAmount += deliveryCharge;
     }
+
+    final packing = cartPackingFee;
+    if (packing != null && packing > 0) {
+      totalAmount += packing;
+    }
+
+    totalAmount += cartPlatformFee;
 
     return double.parse(totalAmount.toStringAsFixed(2));
   }
@@ -280,7 +330,7 @@ class CartService extends ChangeNotifier {
           onTheWayTime: '',
           orderDeliveredTime: '',
           deliveryCharge: 0,
-          totalPrice: getTotalAmount(0, 0).toString(),
+          totalPrice: getTotalAmount(0, selectedCoupon).toString(),
           lat: findVendorById(vendorId)!.lat,
           long: findVendorById(vendorId)!.long,
           customerImage: customer!.image,
@@ -290,7 +340,9 @@ class CartService extends ChangeNotifier {
           chatId: '',
           products: orderedProducts,
           discount: selectedCoupon.toString(),
-          notes: notesController.text.trim());
+          notes: notesController.text.trim(),
+          packingFee: findVendorById(vendorId)?.packingFee ?? 0.0,
+          platformCharge: cartPlatformFee);
 
       sendFCMMessage(findVendorById(vendorId)!.fcmToken);
 

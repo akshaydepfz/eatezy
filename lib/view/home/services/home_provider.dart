@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:eatezy/model/banner_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -23,6 +24,7 @@ class HomeProvider extends ChangeNotifier {
   List<VendorModel>? vendors;
   List<ProductModel>? topProducts;
   List<CategoryModel>? category;
+  StreamSubscription<QuerySnapshot>? _vendorsSubscription;
   int get selectedIndex => _selectedIndex;
   List<BannerModel> banners = [];
   String get address => _address;
@@ -51,18 +53,29 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> gettVendors() async {
-    try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('vendors').get();
-      vendors = snapshot.docs.map((doc) {
-        return VendorModel.fromFirestore(
-            doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-      notifyListeners();
-    } catch (e) {
-      print('Error fetching vendors: $e');
-    }
+  /// Starts listening to vendors in real time. Only vendors with is_active == true are shown.
+  void startVendorsStream() {
+    if (_vendorsSubscription != null) return;
+    _vendorsSubscription = FirebaseFirestore.instance
+        .collection('vendors')
+        .snapshots()
+        .listen((QuerySnapshot snapshot) {
+      try {
+        vendors = snapshot.docs
+            .map((doc) => VendorModel.fromFirestore(
+                doc.data() as Map<String, dynamic>, doc.id))
+            .where((v) => v.isActive)
+            .toList();
+        notifyListeners();
+      } catch (e) {
+        log('Error processing vendors stream: $e');
+      }
+    });
+  }
+
+  void disposeVendorsStream() {
+    _vendorsSubscription?.cancel();
+    _vendorsSubscription = null;
   }
 
   // Future<void> gettVendors() async {
@@ -183,9 +196,6 @@ class HomeProvider extends ChangeNotifier {
       _latitude = latitude;
       _longitude = longitude;
       notifyListeners();
-
-      // Refresh vendors with new location
-      await gettVendors();
     } catch (e) {
       log('Error saving location: $e');
       rethrow;

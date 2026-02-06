@@ -11,19 +11,43 @@ import 'package:provider/provider.dart';
 const double _kCardRadius = 16;
 const Color _kSurface = Color(0xFFF8F9FA);
 
-class RestaurantsListScreen extends StatelessWidget {
+class RestaurantsListScreen extends StatefulWidget {
   const RestaurantsListScreen({super.key});
+
+  @override
+  State<RestaurantsListScreen> createState() => _RestaurantsListScreenState();
+}
+
+class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  List<VendorModel> _filterVendors(List<VendorModel> vendors, String query) {
+    if (query.trim().isEmpty) return vendors;
+    final lower = query.trim().toLowerCase();
+    return vendors.where((v) {
+      return v.shopName.toLowerCase().contains(lower) ||
+          v.shopAddress.toLowerCase().contains(lower);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kSurface,
-
       appBar: AppBar(
         elevation: 0,
         backgroundColor: _kSurface,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.grey.shade800),
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
@@ -40,7 +64,14 @@ class RestaurantsListScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _HeroCarousel(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+              child: _SearchBar(
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
             Expanded(
               child: Consumer<HomeProvider>(
                 builder: (context, homeProvider, _) {
@@ -51,6 +82,11 @@ class RestaurantsListScreen extends StatelessWidget {
                   if (vendors.isEmpty) {
                     return const _EmptyState();
                   }
+                  final filtered =
+                      _filterVendors(vendors, _searchController.text);
+                  if (filtered.isEmpty) {
+                    return const _NoSearchResultsState();
+                  }
                   return CustomScrollView(
                     slivers: [
                       SliverPadding(
@@ -59,7 +95,9 @@ class RestaurantsListScreen extends StatelessWidget {
                           child: Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Text(
-                              'All Restaurants',
+                              _searchController.text.trim().isEmpty
+                                  ? 'All Restaurants'
+                                  : '${filtered.length} result${filtered.length == 1 ? '' : 's'}',
                               style: GoogleFonts.rubik(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -74,23 +112,25 @@ class RestaurantsListScreen extends StatelessWidget {
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, i) {
+                              final vendor = filtered[i];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 14),
                                 child: _RestaurantCard(
-                                  vendor: vendors[i],
+                                  vendor: vendor,
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            RestaurantViewScreen(vendor: vendors[i]),
+                                            RestaurantViewScreen(
+                                                vendor: vendor),
                                       ),
                                     );
                                   },
                                 ),
                               );
                             },
-                            childCount: vendors.length,
+                            childCount: filtered.length,
                           ),
                         ),
                       ),
@@ -101,6 +141,67 @@ class RestaurantsListScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatelessWidget {
+  const _SearchBar({
+    required this.controller,
+    required this.focusNode,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: 'Search restaurants or address…',
+        hintStyle: TextStyle(
+          fontSize: 14,
+          color: Colors.grey.shade500,
+        ),
+        prefixIcon: Icon(
+          Icons.search_rounded,
+          size: 22,
+          color: Colors.grey.shade600,
+        ),
+        suffixIcon: controller.text.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear_rounded, size: 20, color: Colors.grey.shade600),
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColor.primary, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      style: GoogleFonts.rubik(
+        fontSize: 14,
+        color: Colors.grey.shade900,
       ),
     );
   }
@@ -249,7 +350,9 @@ class _RestaurantCard extends StatelessWidget {
                             child: Text(
                               vendor.estimateDistance.isNotEmpty
                                   ? '${vendor.estimateDistance} away'
-                                  : '—',
+                                  : vendor.shopAddress.isNotEmpty
+                                      ? vendor.shopAddress
+                                      : '—',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey.shade600,
@@ -280,23 +383,6 @@ class _RestaurantCard extends StatelessWidget {
                           ],
                         ),
                       ],
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.red.shade100),
-                        ),
-                        child: Text(
-                          '30% off, up to ₹300',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.red.shade700,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -383,6 +469,47 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Restaurants near you will show up here',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NoSearchResultsState extends StatelessWidget {
+  const _NoSearchResultsState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off_rounded,
+              size: 56,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No restaurants found',
+              style: GoogleFonts.rubik(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Try a different search term',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

@@ -17,6 +17,20 @@ class CancelOrder extends StatefulWidget {
 
 class _CancelOrderState extends State<CancelOrder> {
   int _selectedIndex = 0;
+  final TextEditingController _othersController = TextEditingController();
+
+  @override
+  void dispose() {
+    _othersController.dispose();
+    super.dispose();
+  }
+
+  String get _cancellationReason {
+    final others = _othersController.text.trim();
+    if (others.isNotEmpty) return others;
+    return cancelSnap[_selectedIndex]['resone'] as String;
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderService>(context);
@@ -65,6 +79,7 @@ class _CancelOrderState extends State<CancelOrder> {
                     color: const Color(0xFFEFEFF0),
                   ),
                   child: TextFormField(
+                    controller: _othersController,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Others reason...',
@@ -81,7 +96,7 @@ class _CancelOrderState extends State<CancelOrder> {
           child: PrimaryButton(
               label: 'Submit',
               onTap: () {
-                provider.cancellOrder(context, widget.id);
+                provider.cancellOrder(context, widget.id, _cancellationReason);
                 Navigator.push(
                     context,
                     MaterialPageRoute(

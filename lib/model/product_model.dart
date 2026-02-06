@@ -13,6 +13,7 @@ class ProductModel {
   int itemCount;
   String vendorID;
   String shopName;
+  bool isActive;
   ProductModel(
       {required this.id,
       required this.name,
@@ -27,7 +28,30 @@ class ProductModel {
       required this.unitPerItem,
       required this.itemCount,
       required this.shopName,
+      required this.isActive,
       required this.vendorID});
+
+  /// Returns a copy with updated price and slashedPrice (e.g. for applying an offer).
+  ProductModel copyWithPrice(
+      {required double price, required String slashedPrice}) {
+    return ProductModel(
+      id: id,
+      name: name,
+      image: image,
+      description: description,
+      category: category,
+      unit: unit,
+      stock: stock,
+      maxOrder: maxOrder,
+      price: price,
+      slashedPrice: slashedPrice,
+      unitPerItem: unitPerItem,
+      itemCount: itemCount,
+      shopName: shopName,
+      vendorID: vendorID,
+      isActive: isActive,
+    );
+  }
 
   // Create a factory method to map Firestore data to ProductModel
   factory ProductModel.fromFirestore(Map<String, dynamic> data, String id) {
@@ -48,6 +72,11 @@ class ProductModel {
       itemCount: data['item_count'] ?? 0,
       vendorID: data['vendor_id'] ?? '',
       shopName: data['shop_name'] ?? '',
+      isActive: data['is_active'] == null
+          ? true
+          : (data['is_active'] is bool
+              ? data['is_active'] as bool
+              : data['is_active'].toString().toLowerCase() == 'true'),
     );
   }
 }

@@ -16,6 +16,8 @@ class VendorModel {
   final String long;
   final String fcmToken;
   final String featuredImage;
+  final double? packingFee;
+  final String banner;
 
   VendorModel({
     required this.id,
@@ -35,6 +37,8 @@ class VendorModel {
     required this.long,
     required this.fcmToken,
     required this.featuredImage,
+    this.packingFee,
+    required this.banner,
   });
 
   factory VendorModel.fromFirestore(
@@ -61,6 +65,8 @@ class VendorModel {
       long: data['long'] ?? '',
       fcmToken: data['fcm_token'] ?? "",
       featuredImage: data['featured_image'] ?? '',
+      packingFee: (data['packing_fee'] as num?)?.toDouble(),
+      banner: data['banner'] ?? '',
     );
   }
 }
