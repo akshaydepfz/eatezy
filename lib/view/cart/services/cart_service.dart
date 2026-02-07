@@ -288,6 +288,9 @@ class CartService extends ChangeNotifier {
 
   BuildContext? _paymentContext;
 
+  /// Set before placing order: 'cod' or 'online'. Used for deliveryType in OrderModel.
+  String _deliveryTypeForOrder = '';
+
   Future<void> buyNow(
       BuildContext context, List<ProductModel> selectedProduct) async {
     if (customer == null) {
@@ -308,6 +311,7 @@ class CartService extends ChangeNotifier {
     isLoading = true;
     notifyListeners();
     _paymentContext = context;
+    _deliveryTypeForOrder = 'online';
 
     final paymentProvider =
         Provider.of<PaymentProvider>(context, listen: false);
@@ -346,7 +350,29 @@ class CartService extends ChangeNotifier {
     );
   }
 
-  Future<void> _placeOrderAndNavigate() async {
+  /// Places order with Cash on Delivery (no online payment). Navigates to success.
+  Future<void> placeOrderWithCod(BuildContext context) async {
+    if (customer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please complete your profile first')),
+      );
+      return;
+    }
+    final totalAmount = getTotalAmount(0, selectedCoupon);
+    if (totalAmount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid order amount')),
+      );
+      return;
+    }
+    isLoading = true;
+    notifyListeners();
+    _paymentContext = context;
+    _deliveryTypeForOrder = 'cod';
+    await _placeOrderAndNavigate(isPaid: false);
+  }
+
+  Future<void> _placeOrderAndNavigate({bool isPaid = true}) async {
     final context = _paymentContext;
     if (context == null || !context.mounted) return;
 
@@ -378,12 +404,12 @@ class CartService extends ChangeNotifier {
           address: '',
           customerName: customer!.name,
           phone: FirebaseAuth.instance.currentUser!.phoneNumber!,
-          isPaid: true,
+          isPaid: isPaid,
           orderStatus: 'Waiting',
           deliveryBoyId: '',
           isDelivered: false,
           isCancelled: false,
-          deliveryType: '',
+          deliveryType: _deliveryTypeForOrder.isNotEmpty ? _deliveryTypeForOrder : '',
           isRated: false,
           rating: 0,
           confimedTime: '',
@@ -420,6 +446,7 @@ class CartService extends ChangeNotifier {
     couponController.clear();
     notesController.clear();
     selectedProduct.clear();
+    _deliveryTypeForOrder = '';
     notifyListeners();
     _paymentContext = null;
 

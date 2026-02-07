@@ -1,6 +1,7 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/auth/screens/customer_profile_add_screen.dart';
+import 'package:eatezy/view/cart/screens/payment_method_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:flutter/material.dart';
@@ -371,9 +372,13 @@ class _CartScreenState extends State<CartScreen> {
                       width: 160,
                       height: 52,
                       child: PrimaryButton(
-                        isLoading: provider.isLoading,
-                        onTap: () =>
-                            provider.buyNow(context, provider.selectedProduct),
+                        isLoading: false,
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PaymentMethodScreen(),
+                          ),
+                        ),
                         label: 'Place order',
                       ),
                     ),
