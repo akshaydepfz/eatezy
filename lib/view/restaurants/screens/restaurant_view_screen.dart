@@ -25,6 +25,81 @@ class RestaurantViewScreen extends StatefulWidget {
 }
 
 class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
+  String? _selectedCategory;
+
+  /// Returns unique categories from products with item counts. Includes "All" for showing everything.
+  Map<String, int> _getCategoriesWithCounts(List<ProductModel>? products) {
+    if (products == null || products.isEmpty) return {};
+    final counts = <String, int>{};
+    for (final p in products) {
+      final cat = (p.category).trim();
+      final key = cat.isEmpty ? 'Other' : cat;
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  void _showCategorySheet(BuildContext context, RestuarantProvider p) {
+    final categories = _getCategoriesWithCounts(p.products);
+    if (categories.isEmpty) return;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.5,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1F1F1F),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Text(
+                'Food Categories',
+                style: GoogleFonts.rubik(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                children: [
+                  _CategoryTile(
+                    name: 'All',
+                    count: p.products?.length ?? 0,
+                    isSelected: _selectedCategory == null,
+                    onTap: () {
+                      setState(() => _selectedCategory = null);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                  ...categories.entries
+                      .map((e) => _CategoryTile(
+                            name: e.key,
+                            count: e.value,
+                            isSelected: _selectedCategory == e.key,
+                            onTap: () {
+                              setState(() => _selectedCategory = e.key);
+                              Navigator.pop(ctx);
+                            },
+                          ))
+                      .toList(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -39,10 +114,59 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
     });
   }
 
+  List<ProductModel> _filteredProducts(List<ProductModel>? products) {
+    if (products == null) return [];
+    if (_selectedCategory == null) return products;
+    return products.where((p) {
+      final cat = (p.category).trim();
+      final key = cat.isEmpty ? 'Other' : cat;
+      return key == _selectedCategory;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CartService>(context);
     return Scaffold(
+      floatingActionButton: Consumer<RestuarantProvider>(
+        builder: (context, p, _) {
+          final hasCategories = _getCategoriesWithCounts(p.products).isNotEmpty;
+          if (!hasCategories) return const SizedBox.shrink();
+          return GestureDetector(
+            onTap: () => _showCategorySheet(context, p),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1F1F1F),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.menu_book_rounded, color: Colors.white, size: 24),
+                  const SizedBox(width: 8),
+                  Text(
+                    'MENU',
+                    style: GoogleFonts.rubik(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -312,16 +436,46 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                         );
                       },
                     ),
-                    Text(
-                      'All Items',
-                      style: GoogleFonts.rubik(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          _selectedCategory != null
+                              ? '$_selectedCategory'
+                              : 'All Items',
+                          style: GoogleFonts.rubik(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (_selectedCategory != null) ...[
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () =>
+                                setState(() => _selectedCategory = null),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColor.primary.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Clear filter',
+                                style: GoogleFonts.rubik(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColor.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     AppSpacing.h10,
                     Consumer2<RestuarantProvider, SavedItemsService>(
                       builder: (context, p, savedService, _) {
+                        final displayProducts = _filteredProducts(p.products);
                         if (p.products == null) {
                           return ListView.builder(
                             physics: NeverScrollableScrollPhysics(),
@@ -348,9 +502,9 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                         return ListView.builder(
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: p.products!.length,
+                          itemCount: displayProducts.length,
                           itemBuilder: (context, index) {
-                            final product = p.products![index];
+                            final product = displayProducts[index];
                             final offer = p.getOfferForProduct(product.id);
                             final cartIndex = provider.selectedProduct
                                 .indexWhere((item) => item.id == product.id);
@@ -439,12 +593,22 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(40),
-                            child: Image.network(
-                              provider.selectedProduct[index].image,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ),
+                            child:
+                                provider.selectedProduct[index].image.isNotEmpty
+                                    ? Image.network(
+                                        provider.selectedProduct[index].image,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: Colors.grey.shade200,
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          size: 32,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
                           ),
                         ),
                       );
@@ -480,6 +644,67 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
+    required this.name,
+    required this.count,
+    required this.isSelected,
+    required this.onTap,
+  });
+  final String name;
+  final int count;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          margin: const EdgeInsets.only(bottom: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColor.primary.withOpacity(0.2) : null,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: GoogleFonts.rubik(
+                  fontSize: 16,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.rubik(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -760,26 +985,42 @@ class ProductCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return LottieBuilder.asset(
-                            'assets/lottie/load.json',
-                            fit: BoxFit.cover,
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          } else {
-                            return LottieBuilder.asset(
-                              'assets/lottie/load.json',
+                      image.trim().isEmpty
+                          ? Container(
+                              color: Colors.grey.shade200,
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.restaurant,
+                                size: 40,
+                                color: Colors.grey.shade400,
+                              ),
+                            )
+                          : Image.network(
+                              image,
                               fit: BoxFit.cover,
-                            );
-                          }
-                        },
-                      ),
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  alignment: Alignment.center,
+                                  child: Icon(
+                                    Icons.restaurant,
+                                    size: 40,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                );
+                              },
+                              loadingBuilder:
+                                  (context, child, loadingProgress) {
+                                if (loadingProgress == null) {
+                                  return child;
+                                } else {
+                                  return LottieBuilder.asset(
+                                    'assets/lottie/load.json',
+                                    fit: BoxFit.cover,
+                                  );
+                                }
+                              },
+                            ),
                       if (soldOut)
                         Container(
                           decoration: BoxDecoration(
@@ -1124,24 +1365,41 @@ class MenuItemCard extends StatelessWidget {
                               child: Stack(
                                 fit: StackFit.expand,
                                 children: [
-                                  Image.network(
-                                    product.image,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return LottieBuilder.asset(
-                                        'assets/lottie/load.json',
-                                        fit: BoxFit.cover,
-                                      );
-                                    },
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return LottieBuilder.asset(
-                                        'assets/lottie/load.json',
-                                        fit: BoxFit.cover,
-                                      );
-                                    },
-                                  ),
+                                  product.image.trim().isEmpty
+                                      ? Container(
+                                          color: Colors.grey.shade200,
+                                          alignment: Alignment.center,
+                                          child: Icon(
+                                            Icons.restaurant,
+                                            size: 40,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                        )
+                                      : Image.network(
+                                          product.image,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey.shade200,
+                                              alignment: Alignment.center,
+                                              child: Icon(
+                                                Icons.restaurant,
+                                                size: 40,
+                                                color: Colors.grey.shade400,
+                                              ),
+                                            );
+                                          },
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null)
+                                              return child;
+                                            return LottieBuilder.asset(
+                                              'assets/lottie/load.json',
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        ),
                                   if (_soldOut)
                                     Container(
                                       decoration: BoxDecoration(

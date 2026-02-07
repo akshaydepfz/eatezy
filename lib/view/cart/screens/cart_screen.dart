@@ -606,15 +606,23 @@ class CartProductCard extends StatelessWidget {
           child: SizedBox(
             height: 88,
             width: 88,
-            child: Image.network(
-              image,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                color: Colors.grey.shade200,
-                child: Icon(Icons.restaurant_rounded,
-                    color: Colors.grey.shade400, size: 36),
-              ),
-            ),
+            child: image.trim().isEmpty
+                ? Container(
+                    color: Colors.grey.shade200,
+                    alignment: Alignment.center,
+                    child: Icon(Icons.restaurant_rounded,
+                        color: Colors.grey.shade400, size: 36),
+                  )
+                : Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: Icon(Icons.restaurant_rounded,
+                          color: Colors.grey.shade400, size: 36),
+                    ),
+                  ),
           ),
         ),
         const SizedBox(width: 14),

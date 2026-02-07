@@ -523,12 +523,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const EdgeInsets.symmetric(horizontal: 10),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(40),
-                                child: Image.network(
-                                  cartService.selectedProduct[index].image,
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                ),
+                                child: cartService
+                                        .selectedProduct[index].image.isNotEmpty
+                                    ? Image.network(
+                                        cartService
+                                            .selectedProduct[index].image,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: Colors.grey.shade200,
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          size: 32,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
                               ),
                             ),
                           );

@@ -45,108 +45,109 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
         child: Column(
           children: [
             Container(
-            padding: EdgeInsets.all(10),
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-                color: AppColor.primary, borderRadius: BorderRadius.only()),
-            child: Row(
-              children: [
-                Hero(
-                  tag: widget.category,
-                  child: SizedBox(
-                    height: 100,
-                    width: 100,
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(widget.image),
+              padding: EdgeInsets.all(10),
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                  color: AppColor.primary, borderRadius: BorderRadius.only()),
+              child: Row(
+                children: [
+                  Hero(
+                    tag: widget.category,
+                    child: SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(widget.image),
+                      ),
                     ),
                   ),
-                ),
-                AppSpacing.w10,
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.category,
-                      style: TextStyle(
-                          fontSize: 25,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      '${restuarantProvider.catProducts?.length ?? 0} items found',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ],
+                  AppSpacing.w10,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.category,
+                        style: TextStyle(
+                            fontSize: 25,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '${restuarantProvider.catProducts?.length ?? 0} items found',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Consumer<RestuarantProvider>(
-              builder: (context, p, _) {
-                if (p.catProducts == null) {
+            Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Consumer<RestuarantProvider>(
+                builder: (context, p, _) {
+                  if (p.catProducts == null) {
+                    return ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: 6,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: Container(
+                              height: 160,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  }
                   return ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: 6,
+                    itemCount: p.catProducts!.length,
                     itemBuilder: (context, index) {
+                      final product = p.catProducts![index];
+                      final cartIndex = provider.selectedProduct
+                          .indexWhere((item) => item.id == product.id);
+                      final quantity = cartIndex != -1
+                          ? provider.selectedProduct[cartIndex].itemCount
+                          : 0;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 20),
-                        child: Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            height: 160,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                        child: MenuItemCard(
+                          product: product,
+                          quantity: quantity,
+                          isSaved: savedService.isSaved(product.id),
+                          restaurantName: product.shopName,
+                          onAdd: () => provider.addProductWithVendorCheck(
+                              context, product),
+                          onRemove: () {
+                            final i = provider.selectedProduct
+                                .indexWhere((item) => item.id == product.id);
+                            if (i != -1) provider.onItemRemove(i);
+                          },
+                          onShare: () {
+                            Share.share(
+                              'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
+                              subject: product.name,
+                            );
+                          },
+                          onSaveToggle: () =>
+                              savedService.toggleSaved(product.id),
                         ),
                       );
                     },
                   );
-                }
-                return ListView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: p.catProducts!.length,
-                  itemBuilder: (context, index) {
-                    final product = p.catProducts![index];
-                    final cartIndex = provider.selectedProduct
-                        .indexWhere((item) => item.id == product.id);
-                    final quantity = cartIndex != -1
-                        ? provider.selectedProduct[cartIndex].itemCount
-                        : 0;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: MenuItemCard(
-                        product: product,
-                        quantity: quantity,
-                        isSaved: savedService.isSaved(product.id),
-                        restaurantName: product.shopName,
-                        onAdd: () => provider.addProductWithVendorCheck(context, product),
-                        onRemove: () {
-                          final i = provider.selectedProduct
-                              .indexWhere((item) => item.id == product.id);
-                          if (i != -1) provider.onItemRemove(i);
-                        },
-                        onShare: () {
-                          Share.share(
-                            'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
-                            subject: product.name,
-                          );
-                        },
-                        onSaveToggle: () =>
-                            savedService.toggleSaved(product.id),
-                      ),
-                    );
-                  },
-                );
-              },
+                },
+              ),
             ),
-          ),
           ],
         ),
       ),
@@ -187,12 +188,22 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                           margin: const EdgeInsets.symmetric(horizontal: 10),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(40),
-                            child: Image.network(
-                              provider.selectedProduct[index].image,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ),
+                            child:
+                                provider.selectedProduct[index].image.isNotEmpty
+                                    ? Image.network(
+                                        provider.selectedProduct[index].image,
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        color: Colors.grey.shade200,
+                                        child: Icon(
+                                          Icons.restaurant,
+                                          size: 32,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                      ),
                           ),
                         ),
                       );
