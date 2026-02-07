@@ -50,6 +50,18 @@ class LoginSrvice extends ChangeNotifier {
       if (kIsWeb) {
         // ✅ NEW RecaptchaVerifier (firebase_auth 5.x)
         _recaptchaVerifier = RecaptchaVerifier(
+          onSuccess: () {
+            log("reCAPTCHA success");
+          },
+          onExpired: () {
+            log("reCAPTCHA expired");
+          },
+          onError: (error) {
+            log("reCAPTCHA error: $error");
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("reCAPTCHA Error: $error")),
+            );
+          },
           auth: FirebaseAuthPlatform.instance,
           container:
               'recaptcha-container', // Ensure this ID exists in index.html

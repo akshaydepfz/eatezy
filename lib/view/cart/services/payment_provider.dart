@@ -1,19 +1,27 @@
+import 'dart:js' as js;
 import 'package:eatezy/config/razorpay_config.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class PaymentProvider extends ChangeNotifier {
   bool isCashOnDelivery = true;
   String paymentStatus = "Pending";
-  late final Razorpay _razorpay;
+
+  Razorpay? _razorpay;
+
   Function(PaymentSuccessResponse)? onPaymentSuccessCallback;
+  Function(PaymentFailureResponse)? onPaymentErrorCallback;
+  Function(ExternalWalletResponse)? onExternalWalletCallback;
 
   PaymentProvider() {
-    _razorpay = Razorpay();
-    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
-    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
-    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    if (!kIsWeb) {
+      _razorpay = Razorpay();
+      _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+      _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+      _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    }
   }
 
   void onPaymentMethodChange(bool v) {
@@ -21,17 +29,15 @@ class PaymentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Function(PaymentFailureResponse)? onPaymentErrorCallback;
-  Function(ExternalWalletResponse)? onExternalWalletCallback;
-
+  /// MAIN ENTRY POINT
   void openCheckout(
     double amount,
     String name,
     String description, {
     String? customerName,
     Function(PaymentSuccessResponse)? onSuccess,
-    void Function(PaymentFailureResponse)? onError,
-    void Function(ExternalWalletResponse)? onExternalWallet,
+    Function(PaymentFailureResponse)? onError,
+    Function(ExternalWalletResponse)? onExternalWallet,
   }) {
     onPaymentSuccessCallback = onSuccess;
     onPaymentErrorCallback = onError;
@@ -50,48 +56,89 @@ class PaymentProvider extends ChangeNotifier {
     };
 
     try {
-      _razorpay.open(options);
+      if (kIsWeb) {
+        _openCheckoutWeb(options);
+      } else {
+        _razorpay!.open(options);
+      }
     } catch (e) {
-      debugPrint("Razorpay openCheckout error: $e");
+      debugPrint("Razorpay error: $e");
     }
   }
 
+  // =======================
+  // 🔹 WEB IMPLEMENTATION
+  // =======================
+  void _openCheckoutWeb(Map<String, dynamic> options) {
+    final jsOptions = js.JsObject.jsify({
+      'key': options['key'],
+      'amount': options['amount'],
+      'currency': 'INR',
+      'name': options['name'],
+      'description': options['description'],
+      'prefill': options['prefill'],
+      'handler': js.allowInterop((response) {
+        paymentStatus = "Payment Successful";
+
+        if (onPaymentSuccessCallback != null) {
+          onPaymentSuccessCallback!(
+            PaymentSuccessResponse(
+              response['razorpay_payment_id'],
+              response['razorpay_order_id'],
+              response['razorpay_signature'],
+              response['razorpay_payment_link_id'],
+            ),
+          );
+        }
+
+        notifyListeners();
+      }),
+      'modal': {
+        'ondismiss': js.allowInterop(() {
+          paymentStatus = "Payment Cancelled";
+          notifyListeners();
+        })
+      }
+    });
+
+    js.context.callMethod('Razorpay', [jsOptions]).callMethod('open');
+  }
+
+  // =======================
+  // 🔹 MOBILE CALLBACKS
+  // =======================
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
     paymentStatus = "Payment Successful";
-    if (onPaymentSuccessCallback != null) {
-      onPaymentSuccessCallback!(response);
-    }
-    onPaymentErrorCallback = null;
-    onPaymentSuccessCallback = null;
-    onExternalWalletCallback = null;
+    onPaymentSuccessCallback?.call(response);
+    _clearCallbacks();
     notifyListeners();
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     paymentStatus = "Payment Failed: ${response.message}";
-    if (onPaymentErrorCallback != null) {
-      onPaymentErrorCallback!(response);
-    }
-    onPaymentErrorCallback = null;
-    onPaymentSuccessCallback = null;
-    onExternalWalletCallback = null;
+    onPaymentErrorCallback?.call(response);
+    _clearCallbacks();
     notifyListeners();
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     paymentStatus = "External Wallet Selected";
-    if (onExternalWalletCallback != null) {
-      onExternalWalletCallback!(response);
-    }
-    onPaymentErrorCallback = null;
-    onPaymentSuccessCallback = null;
-    onExternalWalletCallback = null;
+    onExternalWalletCallback?.call(response);
+    _clearCallbacks();
     notifyListeners();
+  }
+
+  void _clearCallbacks() {
+    onPaymentSuccessCallback = null;
+    onPaymentErrorCallback = null;
+    onExternalWalletCallback = null;
   }
 
   @override
   void dispose() {
-    _razorpay.clear();
+    if (!kIsWeb) {
+      _razorpay?.clear();
+    }
     super.dispose();
   }
 }

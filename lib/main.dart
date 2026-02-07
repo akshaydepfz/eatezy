@@ -56,7 +56,7 @@ Future<void> main() async {
         messagingSenderId: "366816004932",
         projectId: "eatezy-63f35",
         storageBucket: "eatezy-63f35.firebasestorage.app",
-        authDomain: "app.eatezy.in",
+        authDomain: "eatezy-63f35.firebaseapp.com",
       ),
     );
   } else {
@@ -182,11 +182,7 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
   Widget build(BuildContext context) {
     // Show loading while checking version
     if (_isChecking) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Show main app
