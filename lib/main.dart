@@ -56,7 +56,7 @@ Future<void> main() async {
         messagingSenderId: "366816004932",
         projectId: "eatezy-63f35",
         storageBucket: "eatezy-63f35.firebasestorage.app",
-        authDomain: "eatezy-63f35.firebaseapp.com",
+        authDomain: "app.eatezy.in",
       ),
     );
   } else {

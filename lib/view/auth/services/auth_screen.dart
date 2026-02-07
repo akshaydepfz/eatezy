@@ -51,21 +51,11 @@ class LoginSrvice extends ChangeNotifier {
         // ✅ NEW RecaptchaVerifier (firebase_auth 5.x)
         _recaptchaVerifier = RecaptchaVerifier(
           auth: FirebaseAuthPlatform.instance,
-          container: 'recaptcha-container',
-          size: RecaptchaVerifierSize.normal,
-          theme: RecaptchaVerifierTheme.light,
-          onSuccess: () {
-            log("reCAPTCHA success");
-          },
-          onError: (error) {
-            log("reCAPTCHA error: $error");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("reCAPTCHA Error: $error")),
-            );
-          },
-          onExpired: () {
-            log("reCAPTCHA expired");
-          },
+          container:
+              'recaptcha-container', // Ensure this ID exists in index.html
+          size: RecaptchaVerifierSize
+              .normal, // Change to .invisible if you don't want a box
+          // ... rest of your code
         );
 
         await _recaptchaVerifier!.render();
