@@ -53,7 +53,7 @@ class HomeProvider extends ChangeNotifier {
     }
   }
 
-  /// Starts listening to vendors in real time. All vendors are shown; inactive ones display as "Closed" with opening/closing times.
+  /// Starts listening to vendors in real time. Suspended vendors are excluded; inactive ones display as "Closed" with opening/closing times.
   void startVendorsStream() {
     if (_vendorsSubscription != null) return;
     _vendorsSubscription = FirebaseFirestore.instance
@@ -64,6 +64,7 @@ class HomeProvider extends ChangeNotifier {
         vendors = snapshot.docs
             .map((doc) => VendorModel.fromFirestore(
                 doc.data() as Map<String, dynamic>, doc.id))
+            .where((v) => !v.isSuspend)
             .toList();
         notifyListeners();
       } catch (e) {
@@ -250,9 +251,36 @@ class HomeProvider extends ChangeNotifier {
           .where('is_top', isEqualTo: true)
           .get();
 
-      topProducts = snapshot.docs
+      final allProducts = snapshot.docs
           .map((doc) => ProductModel.fromFirestore(
               doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+
+      if (allProducts.isEmpty) {
+        topProducts = [];
+        notifyListeners();
+        return;
+      }
+
+      final vendorIds = allProducts.map((p) => p.vendorID).toSet().toList();
+      final allowedVendorIds = <String>{};
+
+      for (final vendorId in vendorIds) {
+        if (vendorId.isEmpty) continue;
+        final vendorDoc = await FirebaseFirestore.instance
+            .collection('vendors')
+            .doc(vendorId)
+            .get();
+        final data = vendorDoc.data();
+        if (data != null &&
+            (data['is_active'] ?? false) == true &&
+            (data['is_suspend'] ?? false) != true) {
+          allowedVendorIds.add(vendorId);
+        }
+      }
+
+      topProducts = allProducts
+          .where((p) => allowedVendorIds.contains(p.vendorID))
           .toList();
       notifyListeners();
     } catch (e) {

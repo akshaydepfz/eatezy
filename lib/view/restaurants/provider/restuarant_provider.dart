@@ -91,9 +91,36 @@ class RestuarantProvider extends ChangeNotifier {
           .where('category', isEqualTo: category)
           .get();
 
-      catProducts = snapshot.docs
+      final allProducts = snapshot.docs
           .map((doc) => ProductModel.fromFirestore(
               doc.data() as Map<String, dynamic>, doc.id))
+          .toList();
+
+      if (allProducts.isEmpty) {
+        catProducts = [];
+        notifyListeners();
+        return;
+      }
+
+      final vendorIds = allProducts.map((p) => p.vendorID).toSet().toList();
+      final activeVendorIds = <String>{};
+
+      for (final vendorId in vendorIds) {
+        if (vendorId.isEmpty) continue;
+        final vendorDoc = await FirebaseFirestore.instance
+            .collection('vendors')
+            .doc(vendorId)
+            .get();
+        final data = vendorDoc.data();
+        if (data != null &&
+            (data['is_active'] ?? false) == true &&
+            (data['is_suspend'] ?? false) != true) {
+          activeVendorIds.add(vendorId);
+        }
+      }
+
+      catProducts = allProducts
+          .where((p) => activeVendorIds.contains(p.vendorID))
           .toList();
 
       notifyListeners();
@@ -103,7 +130,7 @@ class RestuarantProvider extends ChangeNotifier {
     }
   }
 
-  /// Fetches products by their document IDs (e.g. for favorites list).
+  /// Fetches products by their document IDs (e.g. for favorites list). Excludes products from suspended or inactive vendors.
   Future<List<ProductModel>> fetchProductsByIds(List<String> ids) async {
     if (ids.isEmpty) return [];
     try {
@@ -120,7 +147,26 @@ class RestuarantProvider extends ChangeNotifier {
               doc.data()!, doc.id));
         }
       }
-      return products;
+      if (products.isEmpty) return [];
+
+      final vendorIds = products.map((p) => p.vendorID).toSet().toList();
+      final allowedVendorIds = <String>{};
+
+      for (final vendorId in vendorIds) {
+        if (vendorId.isEmpty) continue;
+        final vendorDoc = await FirebaseFirestore.instance
+            .collection('vendors')
+            .doc(vendorId)
+            .get();
+        final data = vendorDoc.data();
+        if (data != null &&
+            (data['is_active'] ?? false) == true &&
+            (data['is_suspend'] ?? false) != true) {
+          allowedVendorIds.add(vendorId);
+        }
+      }
+
+      return products.where((p) => allowedVendorIds.contains(p.vendorID)).toList();
     } catch (e) {
       print('Error fetching products by ids: $e');
       return [];

@@ -21,8 +21,9 @@ class ProfileScreen extends StatelessWidget {
           : SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  children: [
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
                     Center(
                         child: SizedBox(
                             height: 70,
@@ -231,7 +232,8 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -176,7 +176,7 @@ class _CartScreenState extends State<CartScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   provider.selectedCoupon != null
-                                      ? '${provider.selectedCoupon}% off applied'
+                                      ? '${provider.selectedCoupon!.discount}% off applied'
                                       : 'Tap to add code',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -291,9 +291,9 @@ class _CartScreenState extends State<CartScreen> {
                           _SummaryRow(
                             label: 'Discount',
                             value: provider.getDiscountAmount(
-                                provider.getSubtotal(),
-                                double.parse(
-                                    provider.selectedCoupon.toString())),
+                              provider.getSubtotal(),
+                              provider.selectedCoupon!.discount.toDouble(),
+                            ),
                             valueColor: Colors.green.shade700,
                           ),
                         ],

@@ -23,7 +23,7 @@ class CartService extends ChangeNotifier {
   List<VendorModel> vendors = [];
   CustomerModel? customer;
   List<CouponModel>? coupon;
-  int? selectedCoupon;
+  CouponModel? selectedCoupon;
 
   /// Platform charge from admin collection (platform_charge field).
   double? platformCharge;
@@ -76,8 +76,6 @@ class CartService extends ChangeNotifier {
             doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
       notifyListeners();
-
-      print(coupon!.first.code);
     } catch (_) {}
   }
 
@@ -133,7 +131,7 @@ class CartService extends ChangeNotifier {
 
     if (couponCode.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please enter a valid coupon code')),
+        const SnackBar(content: Text('Please enter a valid coupon code')),
       );
       return;
     }
@@ -147,26 +145,58 @@ class CartService extends ChangeNotifier {
 
       if (querySnapshot.docs.isEmpty) {
         couponController.clear();
-        Navigator.pop(context);
+        if (context.mounted) Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid coupon code')),
+          const SnackBar(content: Text('Invalid coupon code')),
         );
-      } else {
-        final couponData = querySnapshot.docs.first.data();
-        final percentage = couponData['discount'];
+        return;
+      }
 
+      final doc = querySnapshot.docs.first;
+      final couponModel = CouponModel.fromFirestore(
+        doc.data(),
+        doc.id,
+      );
+
+      if (!couponModel.isActive) {
+        if (context.mounted) Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This coupon is no longer active')),
+        );
+        return;
+      }
+
+      if (couponModel.isExpired) {
+        if (context.mounted) Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This coupon has reached its usage limit')),
+        );
+        return;
+      }
+
+      final subtotal = getSubtotal();
+      if (couponModel.minOrderAmount != null &&
+          subtotal < couponModel.minOrderAmount!) {
+        if (context.mounted) Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Coupon applied! Discount: $percentage%'),
-            backgroundColor: Colors.green,
+            content: Text(
+              'Minimum order amount is ₹${couponModel.minOrderAmount!.toStringAsFixed(0)}',
+            ),
           ),
         );
-        onCouponSelected(int.parse(percentage.toString()));
-
-        couponController.clear();
-        Navigator.pop(context);
-        // Do something with the discount percentage (e.g., apply to price)
+        return;
       }
+
+      onCouponSelected(couponModel);
+      couponController.clear();
+      if (context.mounted) Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Coupon applied! Discount: ${couponModel.discount}%'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error applying coupon: ${e.toString()}')),
@@ -179,7 +209,7 @@ class CartService extends ChangeNotifier {
     return '-₹${discount.toStringAsFixed(2)}';
   }
 
-  void onCouponSelected(int coupon) {
+  void onCouponSelected(CouponModel? coupon) {
     selectedCoupon = coupon;
     notifyListeners();
   }
@@ -264,11 +294,11 @@ class CartService extends ChangeNotifier {
     );
   }
 
-  double getTotalAmount(int deliveryCharge, int? discountPercentage) {
+  double getTotalAmount(int deliveryCharge, CouponModel? appliedCoupon) {
     double totalAmount = getSubtotal();
 
-    if (discountPercentage != null) {
-      double discountAmount = totalAmount * (discountPercentage / 100);
+    if (appliedCoupon != null) {
+      final discountAmount = totalAmount * (appliedCoupon.discount / 100);
       totalAmount -= discountAmount;
     }
 
@@ -427,7 +457,7 @@ class CartService extends ChangeNotifier {
           vendorPhone: findVendorById(vendorId)!.phone,
           chatId: '',
           products: orderedProducts,
-          discount: selectedCoupon.toString(),
+          discount: selectedCoupon?.discount.toString() ?? '0',
           notes: notesController.text.trim(),
           packingFee:
               double.tryParse(findVendorById(vendorId)?.packingFee ?? '0') ??

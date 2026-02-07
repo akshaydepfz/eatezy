@@ -89,7 +89,7 @@ class ItService extends ChangeNotifier {
           estimateDistance: '${distanceInKm.toStringAsFixed(2)} km',
           estimateTime: formatTime(estimatedMinutes),
         );
-      }).toList();
+      }).where((v) => !v.isSuspend).toList();
 
       notifyListeners();
     } catch (e) {

@@ -6,6 +6,7 @@ class CustomerModel {
   final String id;
   final String referId;
   final String address;
+  final bool isBlocked;
 
   CustomerModel(
       {required this.image,
@@ -14,7 +15,8 @@ class CustomerModel {
       required this.id,
       required this.phoneNumber,
       required this.referId,
-      required this.address});
+      required this.address,
+      this.isBlocked = false});
 
   factory CustomerModel.fromFirestore(Map<String, dynamic> data, String id) {
     return CustomerModel(
@@ -24,6 +26,7 @@ class CustomerModel {
         image: data['profile_image'] ?? '',
         id: data['uid'],
         referId: data['referred_by'] ?? '',
-        address: data['address'] ?? "");
+        address: data['address'] ?? '',
+        isBlocked: data['is_blocked'] == true);
   }
 }
