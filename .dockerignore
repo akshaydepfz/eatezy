@@ -1,0 +1,10 @@
+.git
+.gitignore
+**/.git
+**/build
+.dart_tool
+*.iml
+.idea
+.vscode
+*.md
+.DS_Store
