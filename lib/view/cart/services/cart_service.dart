@@ -356,14 +356,16 @@ class CartService extends ChangeNotifier {
       'Food order payment',
       customerName: customer!.name,
       onSuccess: (_) => _placeOrderAndNavigate(),
-      onError: (PaymentFailureResponse response) {
+      onError: (dynamic response) {
         isLoading = false;
         notifyListeners();
         if (_paymentContext != null && _paymentContext!.mounted) {
+          final message = response is PaymentFailureResponse
+              ? (response.message ?? "Unknown error")
+              : "Unknown error";
           ScaffoldMessenger.of(_paymentContext!).showSnackBar(
             SnackBar(
-              content: Text(
-                  'Payment failed: ${response.message ?? "Unknown error"}'),
+              content: Text('Payment failed: $message'),
               backgroundColor: Colors.red,
             ),
           );
