@@ -5,6 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+/// Order total + transaction fee (amount paid) for display.
+String _formatOrderTotal(String totalPrice, double transactionFee) {
+  final base = double.tryParse(totalPrice) ?? 0.0;
+  return (base + transactionFee).toStringAsFixed(2);
+}
+
 /// Formats order status for display (e.g. "ready_for_pickup" → "Ready for pickup").
 String _formatOrderStatus(String status) {
   if (status.isEmpty) return status;
@@ -307,6 +313,29 @@ class _CancelledOrderCard extends StatelessWidget {
                       ],
                     ),
                   ],
+                  if (order.transactionFee > 0) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Transaction fee',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                        Text(
+                          '₹${order.transactionFee.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (order.preparationTimeMinutes > 0) ...[
                     const SizedBox(height: 8),
                     Container(
@@ -412,7 +441,7 @@ class _CancelledOrderCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '₹${order.totalPrice}',
+                        '₹${_formatOrderTotal(order.totalPrice, order.transactionFee)}',
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,

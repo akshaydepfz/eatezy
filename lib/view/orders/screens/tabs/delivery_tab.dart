@@ -54,6 +54,7 @@ class DeliveryTab extends StatelessWidget {
                   notes: order.notes,
                   packingFee: order.packingFee,
                   platformFee: order.platformCharge,
+                  transactionFee: order.transactionFee,
                   isRated: order.isRated,
                   rating: order.rating,
                   ratingText: order.ratingText,
@@ -85,6 +86,12 @@ class DeliveryTab extends StatelessWidget {
   }
 }
 
+/// Order total + transaction fee (amount paid) for display.
+String _formatOrderTotal(String totalPrice, double transactionFee) {
+  final base = double.tryParse(totalPrice) ?? 0.0;
+  return (base + transactionFee).toStringAsFixed(2);
+}
+
 String _formatOrderStatus(String status) {
   if (status.isEmpty) return status;
   return status
@@ -111,6 +118,7 @@ class _DeliveryOrderCard extends StatelessWidget {
     this.notes = '',
     this.packingFee = 0.0,
     this.platformFee = 0.0,
+    this.transactionFee = 0.0,
   });
 
   final String image;
@@ -121,6 +129,7 @@ class _DeliveryOrderCard extends StatelessWidget {
   final String notes;
   final double packingFee;
   final double platformFee;
+  final double transactionFee;
   final VoidCallback onReviewTap;
   final VoidCallback onOrderAgainTap;
   final double rating;
@@ -251,7 +260,7 @@ class _DeliveryOrderCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '₹$totalPrice',
+                        '₹${_formatOrderTotal(totalPrice, transactionFee)}',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -266,7 +275,8 @@ class _DeliveryOrderCard extends StatelessWidget {
           ),
           if (notes.trim().isNotEmpty ||
               packingFee > 0 ||
-              platformFee > 0) ...[
+              platformFee > 0 ||
+              transactionFee > 0) ...[
             Divider(height: 1, color: Colors.grey.shade200),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -291,9 +301,30 @@ class _DeliveryOrderCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (packingFee > 0 || platformFee > 0)
+                    if (packingFee > 0 || platformFee > 0 || transactionFee > 0)
                       const SizedBox(height: 8),
                   ],
+                  if (transactionFee > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Transaction fee',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          '₹${transactionFee.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
                   if (packingFee > 0)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -316,7 +347,7 @@ class _DeliveryOrderCard extends StatelessWidget {
                       ],
                     ),
                   if (platformFee > 0) ...[
-                    if (packingFee > 0) const SizedBox(height: 8),
+                    if (packingFee > 0 || transactionFee > 0) const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

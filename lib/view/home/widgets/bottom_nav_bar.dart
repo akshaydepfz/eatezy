@@ -27,7 +27,7 @@ class BottomNavButton extends StatelessWidget {
                       const BoxDecoration(color: AppColor.primary, boxShadow: [
                     BoxShadow(
                         blurRadius: 10,
-                        spreadRadius: 1,
+                        spreadRadius: 3,
                         color: Colors.greenAccent,
                         offset: Offset(0, 5))
                   ]),
@@ -42,7 +42,7 @@ class BottomNavButton extends StatelessWidget {
               width: 25,
               child: SvgPicture.asset(
                 icon,
-                color: isSelected ? AppColor.primary : Colors.grey.shade300,
+                color: isSelected ? AppColor.primary : Colors.grey.shade700,
               )),
         ],
       ),

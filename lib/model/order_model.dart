@@ -34,6 +34,8 @@ class OrderModel {
   String notes;
   double packingFee;
   double platformCharge;
+  /// Online payment transaction fee (e.g. 2.5% of order total). 0 for COD.
+  double transactionFee;
   List<OrderedProduct> products;
   int preparationTimeMinutes;
 
@@ -74,7 +76,8 @@ class OrderModel {
       required this.totalPrice,
       this.notes = '',
       this.packingFee = 0.0,
-      this.platformCharge = 0.0});
+      this.platformCharge = 0.0,
+      this.transactionFee = 0.0});
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
@@ -116,6 +119,7 @@ class OrderModel {
         notes: data['notes'] ?? '',
         packingFee: (data['packing_fee'] as num?)?.toDouble() ?? 0.0,
         platformCharge: (data['platform_charge'] as num?)?.toDouble() ?? 0.0,
+        transactionFee: (data['transaction_fee'] as num?)?.toDouble() ?? 0.0,
         preparationTimeMinutes: data['preparation_time'] != null
             ? int.tryParse(data['preparation_time'].toString()) ?? 0
             : 0);
@@ -158,6 +162,7 @@ class OrderModel {
       'notes': notes,
       'packing_fee': packingFee,
       'platform_charge': platformCharge,
+      'transaction_fee': transactionFee,
       'preparation_time': preparationTimeMinutes,
     };
   }

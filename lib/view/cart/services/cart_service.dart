@@ -18,6 +18,9 @@ import 'package:provider/provider.dart';
 /// Admin collection doc ID for platform settings.
 const String _adminDocId = 'vcEyyBUUm5NAwliB3dTX';
 
+/// Online payment transaction fee (2.5%). Applied to amount when paying online.
+const double kOnlineTransactionFeePercent = 2.5;
+
 class CartService extends ChangeNotifier {
   List<ProductModel> selectedProduct = [];
   List<VendorModel> vendors = [];
@@ -330,13 +333,15 @@ class CartService extends ChangeNotifier {
       return;
     }
 
-    final totalAmount = getTotalAmount(0, selectedCoupon);
-    if (totalAmount <= 0) {
+    final baseAmount = getTotalAmount(0, selectedCoupon);
+    if (baseAmount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Invalid order amount')),
       );
       return;
     }
+
+    final totalAmount = baseAmount * (1 + kOnlineTransactionFeePercent / 100);
 
     isLoading = true;
     notifyListeners();
@@ -426,6 +431,11 @@ class CartService extends ChangeNotifier {
         );
       }).toList();
 
+      final baseAmount = getTotalAmount(0, selectedCoupon);
+      final transactionFee = _deliveryTypeForOrder == 'online'
+          ? baseAmount * (kOnlineTransactionFeePercent / 100)
+          : 0.0;
+
       OrderModel order = OrderModel(
           id: UniqueKey().toString(),
           uuid: FirebaseAuth.instance.currentUser!.uid,
@@ -448,7 +458,8 @@ class CartService extends ChangeNotifier {
           onTheWayTime: '',
           orderDeliveredTime: '',
           deliveryCharge: 0,
-          totalPrice: getTotalAmount(0, selectedCoupon).toString(),
+          totalPrice: baseAmount.toStringAsFixed(2),
+          transactionFee: transactionFee,
           lat: findVendorById(vendorId)!.lat,
           long: findVendorById(vendorId)!.long,
           customerImage: customer!.image,
