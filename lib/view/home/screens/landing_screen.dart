@@ -90,14 +90,16 @@ class _LandingScreenState extends State<LandingScreen> {
         }
         return Scaffold(
           body: provider.pages[provider.selectedIndex],
-          bottomNavigationBar: Container(
-            height: 80,
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-            ),
-            child: Consumer<HomeProvider>(builder: (context, p, _) {
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Container(
+              height: 80,
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+              ),
+              child: Consumer<HomeProvider>(builder: (context, p, _) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -124,6 +126,7 @@ class _LandingScreenState extends State<LandingScreen> {
                 ],
               );
             }),
+            ),
           ),
         );
       },
