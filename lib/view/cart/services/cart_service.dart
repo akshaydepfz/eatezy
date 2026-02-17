@@ -9,7 +9,6 @@ import 'package:eatezy/model/vendor_model.dart';
 import 'package:eatezy/view/cart/screens/success_screen.dart';
 import 'package:eatezy/view/cart/services/payment_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
@@ -376,9 +375,9 @@ class CartService extends ChangeNotifier {
         isLoading = false;
         notifyListeners();
         if (_paymentContext != null && _paymentContext!.mounted) {
-          final message = response is PaymentFailureResponse
-              ? (response.message ?? "Unknown error")
-              : "Unknown error";
+          final message = response is Map
+              ? (response['message']?.toString() ?? "Unknown error")
+              : (response?.message?.toString() ?? "Unknown error");
           ScaffoldMessenger.of(_paymentContext!).showSnackBar(
             SnackBar(
               content: Text('Payment failed: $message'),
