@@ -10,7 +10,6 @@ import 'package:eatezy/view/cart/screens/success_screen.dart';
 import 'package:eatezy/view/cart/services/payment_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
