@@ -3,6 +3,7 @@ import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/auth/services/auth_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 
 class CustomerDetailsAddScreen extends StatelessWidget {
@@ -24,8 +25,8 @@ class CustomerDetailsAddScreen extends StatelessWidget {
                       height: 80,
                       width: 80,
                       child: CircleAvatar(
-                        backgroundImage: provider.image != null
-                            ? FileImage(provider.image!)
+                        backgroundImage: provider.imageBytes != null
+                            ? MemoryImage(provider.imageBytes!)
                             : null,
                         backgroundColor: Colors.grey.shade200,
                       )),
@@ -51,8 +52,15 @@ class CustomerDetailsAddScreen extends StatelessWidget {
               PrimaryTextField(
                   title: 'Name', controller: provider.nameController),
               AppSpacing.h10,
-              PrimaryTextField(
-                  title: 'Email Address', controller: provider.emailController),
+              if (kIsWeb)
+                PrimaryTextField(
+                    title: 'Phone Number',
+                    controller: provider.mobileController,
+                    keyboardType: TextInputType.phone)
+              else
+                PrimaryTextField(
+                    title: 'Email Address',
+                    controller: provider.emailController),
               const Spacer(),
               PrimaryButton(
                   label: 'Continue',
@@ -73,10 +81,12 @@ class PrimaryTextField extends StatelessWidget {
     required this.title,
     required this.controller,
     this.validator,
+    this.keyboardType,
   });
   final String title;
   final TextEditingController controller;
-  FormFieldValidator<String>? validator;
+  final FormFieldValidator<String>? validator;
+  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +98,7 @@ class PrimaryTextField extends StatelessWidget {
         TextFormField(
           validator: validator,
           controller: controller,
+          keyboardType: keyboardType,
           decoration: const InputDecoration(
             border:
                 OutlineInputBorder(borderSide: BorderSide(color: Colors.grey)),

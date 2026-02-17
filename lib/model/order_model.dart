@@ -34,10 +34,17 @@ class OrderModel {
   String notes;
   double packingFee;
   double platformCharge;
+
   /// Online payment transaction fee (e.g. 2.5% of order total). 0 for COD.
   double transactionFee;
   List<OrderedProduct> products;
   int preparationTimeMinutes;
+
+  /// ISO8601 string for scheduled delivery (empty = immediate).
+  String scheduledFor;
+
+  /// True when order is scheduled for later delivery.
+  bool isScheduled;
 
   OrderModel(
       {required this.id,
@@ -77,7 +84,9 @@ class OrderModel {
       this.notes = '',
       this.packingFee = 0.0,
       this.platformCharge = 0.0,
-      this.transactionFee = 0.0});
+      this.transactionFee = 0.0,
+      this.scheduledFor = '',
+      this.isScheduled = false});
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
@@ -122,7 +131,10 @@ class OrderModel {
         transactionFee: (data['transaction_fee'] as num?)?.toDouble() ?? 0.0,
         preparationTimeMinutes: data['preparation_time'] != null
             ? int.tryParse(data['preparation_time'].toString()) ?? 0
-            : 0);
+            : 0,
+        scheduledFor: data['scheduled_for'] ?? '',
+        isScheduled: data['is_scheduled'] ??
+            ((data['scheduled_for']?.toString().trim().isNotEmpty ?? false)));
   }
 
   Map<String, dynamic> toMap() {
@@ -164,6 +176,8 @@ class OrderModel {
       'platform_charge': platformCharge,
       'transaction_fee': transactionFee,
       'preparation_time': preparationTimeMinutes,
+      'scheduled_for': scheduledFor,
+      'is_scheduled': isScheduled,
     };
   }
 }

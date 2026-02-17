@@ -2,6 +2,7 @@ import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/auth/screens/customer_profile_add_screen.dart';
 import 'package:eatezy/view/cart/screens/payment_method_screen.dart';
+import 'package:eatezy/view/cart/screens/schedule_slot_screen.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:flutter/material.dart';
@@ -31,8 +32,8 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<CartService>(context);
-    final itemCount = provider.selectedProduct.fold<int>(
-        0, (sum, p) => sum + p.itemCount);
+    final itemCount =
+        provider.selectedProduct.fold<int>(0, (sum, p) => sum + p.itemCount);
 
     return Scaffold(
       backgroundColor: _surface,
@@ -40,7 +41,8 @@ class _CartScreenState extends State<CartScreen> {
         elevation: 0,
         backgroundColor: _surface,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.grey.shade800),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -58,9 +60,10 @@ class _CartScreenState extends State<CartScreen> {
               padding: const EdgeInsets.only(right: 12),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColor.primary.withOpacity( 0.12),
+                    color: AppColor.primary.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -120,7 +123,8 @@ class _CartScreenState extends State<CartScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           separatorBuilder: (_, __) => Padding(
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Divider(height: 1, color: Colors.grey.shade200),
+                            child:
+                                Divider(height: 1, color: Colors.grey.shade200),
                           ),
                           itemCount: provider.selectedProduct.length,
                           itemBuilder: (context, i) {
@@ -151,14 +155,17 @@ class _CartScreenState extends State<CartScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColor.primary.withOpacity( 0.08),
+                              color: AppColor.primary.withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Image.asset('assets/icons/discount.png',
-                                height: 28, width: 28,
-                                color: AppColor.primary, errorBuilder: (_, __, ___) =>
-                                Icon(Icons.local_offer_rounded,
-                                    color: AppColor.primary, size: 28)),
+                                height: 28,
+                                width: 28,
+                                color: AppColor.primary,
+                                errorBuilder: (_, __, ___) => Icon(
+                                    Icons.local_offer_rounded,
+                                    color: AppColor.primary,
+                                    size: 28)),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -220,9 +227,11 @@ class _CartScreenState extends State<CartScreen> {
                         TextFormField(
                           controller: provider.notesController,
                           maxLines: 2,
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
+                          style: TextStyle(
+                              fontSize: 14, color: Colors.grey.shade800),
                           decoration: InputDecoration(
-                            hintText: 'Special instructions (e.g. no onions, extra napkins)',
+                            hintText:
+                                'Special instructions (e.g. no onions, extra napkins)',
                             hintStyle: TextStyle(
                               color: Colors.grey.shade500,
                               fontSize: 13,
@@ -231,11 +240,13 @@ class _CartScreenState extends State<CartScreen> {
                             fillColor: _surface,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade300),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey.shade300),
+                              borderSide:
+                                  BorderSide(color: Colors.grey.shade300),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -273,7 +284,7 @@ class _CartScreenState extends State<CartScreen> {
                             provider.cartPackingFee! > 0) ...[
                           AppSpacing.h10,
                           _SummaryRow(
-                            label: 'Packing fee',
+                            label: 'Packing fee (Charge by restaurant)',
                             value:
                                 '₹${provider.cartPackingFee!.toStringAsFixed(2)}',
                           ),
@@ -334,52 +345,72 @@ class _CartScreenState extends State<CartScreen> {
                 color: _cardBg,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity( 0.06),
+                    color: Colors.black.withOpacity(0.06),
                     blurRadius: 12,
                     offset: const Offset(0, -4),
                   ),
                 ],
               ),
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
+              padding: EdgeInsets.fromLTRB(
+                  20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
               child: SafeArea(
                 child: Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w500,
+                      child: SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            backgroundColor: AppColor.primary,
+                          ),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PaymentMethodScreen(),
                             ),
                           ),
-                          Text(
-                            '₹${provider.getTotalAmount(0, provider.selectedCoupon)}',
+                          child: const Text(
+                            'Place order',
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.grey.shade900,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 160,
-                      height: 52,
-                      child: PrimaryButton(
-                        isLoading: false,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PaymentMethodScreen(),
                           ),
                         ),
-                        label: 'Place order',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        height: 52,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side:
+                                BorderSide(color: AppColor.primary, width: 1.5),
+                            foregroundColor: AppColor.primary,
+                            backgroundColor: Colors.transparent,
+                          ),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ScheduleSlotScreen(),
+                            ),
+                          ),
+                          child: const Text(
+                            'Schedule',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -395,8 +426,8 @@ class _CartScreenState extends State<CartScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -464,7 +495,7 @@ class _SectionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity( 0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -527,13 +558,13 @@ class _EmptyCart extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColor.primary.withOpacity( 0.08),
+                color: AppColor.primary.withOpacity(0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.shopping_cart_outlined,
                 size: 64,
-                color: AppColor.primary.withOpacity( 0.7),
+                color: AppColor.primary.withOpacity(0.7),
               ),
             ),
             AppSpacing.h20,

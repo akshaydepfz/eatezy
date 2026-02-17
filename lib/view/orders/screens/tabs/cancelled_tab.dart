@@ -11,16 +11,15 @@ String _formatOrderTotal(String totalPrice, double transactionFee) {
   return (base + transactionFee).toStringAsFixed(2);
 }
 
-/// Formats order status for display (e.g. "ready_for_pickup" → "Ready for pickup").
-String _formatOrderStatus(String status) {
-  if (status.isEmpty) return status;
-  return status
-      .replaceAll('_', ' ')
-      .split(' ')
-      .map((w) => w.isEmpty
-          ? w
-          : '${w[0].toUpperCase()}${w.length > 1 ? w.substring(1).toLowerCase() : ''}')
-      .join(' ');
+/// Formats scheduledFor ISO8601 string for display.
+String _formatScheduledTime(String scheduledFor) {
+  if (scheduledFor.isEmpty) return '';
+  try {
+    final dt = DateTime.parse(scheduledFor);
+    return DateFormat('MMM d, yyyy · h:mm a').format(dt);
+  } catch (_) {
+    return scheduledFor;
+  }
 }
 
 class CancelledTab extends StatelessWidget {
@@ -382,6 +381,52 @@ class _CancelledOrderCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (order.isScheduled && order.scheduledFor.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 16,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Scheduled for',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade500,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _formatScheduledTime(order.scheduledFor),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(10),
@@ -413,7 +458,7 @@ class _CancelledOrderCard extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                _formatOrderStatus(order.orderStatus),
+                                'Cancelled',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,

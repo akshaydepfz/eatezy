@@ -14,6 +14,13 @@ class ProductModel {
   String vendorID;
   String shopName;
   bool isActive;
+
+  /// Time when product becomes available (e.g. "09:00"). Null = no restriction.
+  String? availableFromTime;
+
+  /// Time when product becomes unavailable (e.g. "18:00"). Null = no restriction.
+  String? availableToTime;
+
   ProductModel(
       {required this.id,
       required this.name,
@@ -29,7 +36,70 @@ class ProductModel {
       required this.itemCount,
       required this.shopName,
       required this.isActive,
-      required this.vendorID});
+      required this.vendorID,
+      this.availableFromTime,
+      this.availableToTime});
+
+  /// True if product has time-based availability (either from or to is set).
+  bool get hasTimeRestriction =>
+      (availableFromTime != null && availableFromTime!.isNotEmpty) ||
+      (availableToTime != null && availableToTime!.isNotEmpty);
+
+  /// True if product is currently available based on time window.
+  /// When no time restriction, returns true.
+  bool get isCurrentlyAvailable {
+    if (!hasTimeRestriction) return true;
+    final now = DateTime.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    if (availableFromTime != null && availableFromTime!.isNotEmpty) {
+      final parts = availableFromTime!.split(':');
+      if (parts.length >= 2) {
+        final fromMinutes =
+            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+        if (nowMinutes < fromMinutes) return false;
+      }
+    }
+    if (availableToTime != null && availableToTime!.isNotEmpty) {
+      final parts = availableToTime!.split(':');
+      if (parts.length >= 2) {
+        final toMinutes =
+            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+        if (nowMinutes > toMinutes) return false;
+      }
+    }
+    return true;
+  }
+
+  /// When product is not available due to time, returns the time it becomes available (e.g. "09:00").
+  /// Returns null when product is available or has no time restriction.
+  String? get availableAtTime {
+    if (!hasTimeRestriction) return null;
+    if (isCurrentlyAvailable) return null;
+    final now = DateTime.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    if (availableFromTime != null && availableFromTime!.isNotEmpty) {
+      final parts = availableFromTime!.split(':');
+      if (parts.length >= 2) {
+        final fromMinutes =
+            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+        if (nowMinutes < fromMinutes) return availableFromTime;
+      }
+    }
+    if (availableToTime != null && availableToTime!.isNotEmpty) {
+      final parts = availableToTime!.split(':');
+      if (parts.length >= 2) {
+        final toMinutes =
+            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
+        if (nowMinutes > toMinutes) return availableFromTime ?? availableToTime;
+      }
+    }
+    return null;
+  }
+
+  /// True when product can be added to cart (active + within time window).
+  bool get isClickable => isActive && isCurrentlyAvailable;
 
   /// Returns a copy with updated price and slashedPrice (e.g. for applying an offer).
   ProductModel copyWithPrice(
@@ -50,6 +120,8 @@ class ProductModel {
       shopName: shopName,
       vendorID: vendorID,
       isActive: isActive,
+      availableFromTime: availableFromTime,
+      availableToTime: availableToTime,
     );
   }
 
@@ -62,9 +134,9 @@ class ProductModel {
       description: data['description'] ?? '',
       category: data['category'] ?? '',
       unit: data['unit'] ?? '',
-      stock: data['stock'] != null ? int.parse(data['stock'].toString()) : 0,
+      stock: data['stock'] != "" ? int.parse(data['stock'].toString()) : 0,
       maxOrder:
-          data['maxOrder'] != null ? int.parse(data['maxOrder'].toString()) : 0,
+          data['maxOrder'] != "" ? int.parse(data['maxOrder'].toString()) : 0,
       price:
           data['price'] != null ? double.parse(data['price'].toString()) : 0.0,
       slashedPrice: data['slashedPrice'],
@@ -77,6 +149,14 @@ class ProductModel {
           : (data['is_active'] is bool
               ? data['is_active'] as bool
               : data['is_active'].toString().toLowerCase() == 'true'),
+      availableFromTime:
+          data['available_from_time']?.toString().trim().isNotEmpty == true
+              ? data['available_from_time'].toString()
+              : null,
+      availableToTime:
+          data['available_to_time']?.toString().trim().isNotEmpty == true
+              ? data['available_to_time'].toString()
+              : null,
     );
   }
 }

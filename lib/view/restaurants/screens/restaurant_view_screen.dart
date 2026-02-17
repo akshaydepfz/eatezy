@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/map_example.dart';
 import 'package:eatezy/model/offer_model.dart';
 import 'package:eatezy/model/product_model.dart';
@@ -410,7 +411,8 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                                       if (idx != -1) provider.onItemRemove(idx);
                                     },
                                     isSelected: isSelected,
-                                    isActive: product.isActive,
+                                    isActive: product.isClickable,
+                                    availableAtTime: product.availableAtTime,
                                     onTap: () {
                                       final toAdd = offer != null
                                           ? product.copyWithPrice(
@@ -954,6 +956,7 @@ class ProductCard extends StatelessWidget {
     required this.isSelected,
     required this.onRemove,
     this.isActive = true,
+    this.availableAtTime,
   });
   final String image;
   final String name;
@@ -963,6 +966,8 @@ class ProductCard extends StatelessWidget {
   final Function() onRemove;
   final bool isSelected;
   final bool isActive;
+  /// When product is unavailable due to time, show "Available at X" (e.g. "09:00").
+  final String? availableAtTime;
 
   @override
   Widget build(BuildContext context) {
@@ -1029,7 +1034,9 @@ class ProductCard extends StatelessWidget {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            'Sold out',
+                            availableAtTime != null
+                                ? 'Available at $availableAtTime'
+                                : 'Sold out',
                             style: GoogleFonts.rubik(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -1094,7 +1101,7 @@ class ProductCard extends StatelessWidget {
                     color: Colors.grey,
                     decoration: TextDecoration.lineThrough),
               ),
-              if (soldOut) ...[
+              if (soldOut && availableAtTime == null) ...[
                 AppSpacing.w5,
                 Text(
                   'Sold out',
@@ -1106,7 +1113,19 @@ class ProductCard extends StatelessWidget {
                 ),
               ],
             ],
-          )
+          ),
+          if (soldOut && availableAtTime != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                'Available at $availableAtTime',
+                style: GoogleFonts.rubik(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.orange.shade700,
+                ),
+              ),
+            )
         ],
       ),
     );
@@ -1149,6 +1168,27 @@ class MenuItemCard extends StatelessWidget {
     return name.isEmpty ? 'Restaurant' : name;
   }
 
+  static Future<void> _navigateToRestaurant(
+      BuildContext context, String vendorId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('vendors')
+          .doc(vendorId)
+          .get();
+      if (!context.mounted) return;
+      if (!snapshot.exists || snapshot.data() == null) return;
+      final vendor =
+          VendorModel.fromFirestore(snapshot.data()!, snapshot.id);
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RestaurantViewScreen(vendor: vendor),
+        ),
+      );
+    } catch (_) {}
+  }
+
   int? _discountPercent() {
     if (offer != null) {
       final original = product.price;
@@ -1171,7 +1211,7 @@ class MenuItemCard extends StatelessWidget {
   String get _displaySlashedPrice =>
       offer != null ? product.price.toStringAsFixed(2) : product.slashedPrice;
 
-  bool get _soldOut => !product.isActive;
+  bool get _soldOut => !product.isClickable;
 
   @override
   Widget build(BuildContext context) {
@@ -1196,33 +1236,39 @@ class MenuItemCard extends StatelessWidget {
           if (showRestaurantName && _displayRestaurantName.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-              child: SizedBox(
-                width: double.infinity,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                  constraints: const BoxConstraints(minHeight: 40),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.centerLeft,
-                  child: Row(
-                    children: [
-                      Icon(Icons.store, size: 18, color: AppColor.primary),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _displayRestaurantName,
-                          style: GoogleFonts.rubik(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: AppColor.primary,
+              child: GestureDetector(
+                onTap: product.vendorID.isNotEmpty
+                    ? () => _navigateToRestaurant(context, product.vendorID)
+                    : null,
+                behavior: HitTestBehavior.opaque,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                    constraints: const BoxConstraints(minHeight: 40),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      children: [
+                        Icon(Icons.store, size: 18, color: AppColor.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _displayRestaurantName,
+                            style: GoogleFonts.rubik(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColor.primary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1290,7 +1336,7 @@ class MenuItemCard extends StatelessWidget {
                               ),
                             ),
                           ],
-                          if (_soldOut) ...[
+                          if (_soldOut && product.availableAtTime == null) ...[
                             const SizedBox(width: 8),
                             Text(
                               'Sold out',
@@ -1303,6 +1349,18 @@ class MenuItemCard extends StatelessWidget {
                           ],
                         ],
                       ),
+                      if (_soldOut && product.availableAtTime != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            'Available at ${product.availableAtTime}',
+                            style: GoogleFonts.rubik(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 6),
                       Text(
                         product.description.isEmpty
@@ -1509,7 +1567,9 @@ class MenuItemCard extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
-                                    'Sold out',
+                                    product.availableAtTime != null
+                                        ? 'Available at ${product.availableAtTime}'
+                                        : 'Sold out',
                                     style: GoogleFonts.rubik(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,

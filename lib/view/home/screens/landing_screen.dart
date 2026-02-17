@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:eatezy/main.dart';
+import 'package:eatezy/services/notification_service.dart';
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/home/widgets/bottom_nav_bar.dart';
@@ -21,32 +21,19 @@ class _LandingScreenState extends State<LandingScreen> {
   void initState() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
-      if (notification != null && android != null) {
-        // flutterLocalNotificationsPlugin.show(
-        //   notification.hashCode,
-        //   notification.title,
-        //   notification.body,
-        //   // NotificationDetails(
-        //   //   android: AndroidNotificationDetails(
-        //   //     channel.id,
-        //   //     channel.name,
-        //   //     channelDescription: channel.description,
-        //   //     importance: Importance.high,
-        //   //     color: Colors.blue,
-        //   //     playSound: true,
-        //   //     icon: '@mipmap/ic_launcher',
-        //   //   ),
-        //   // ),
-        // );
+      if (notification != null) {
+        showLocalNotification(
+          id: notification.hashCode & 0x7FFFFFFF,
+          title: notification.title ?? 'Notification',
+          body: notification.body ?? '',
+        );
       }
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       RemoteNotification? notification = message.notification;
-      AndroidNotification? android = message.notification?.android;
 
-      if (notification != null && android != null) {
+      if (notification != null) {
         showDialog(
             context: context,
             builder: (_) {

@@ -16,9 +16,12 @@ typedef PaymentType = String;
 const PaymentType kPaymentCod = 'cod';
 const PaymentType kPaymentOnline = 'online';
 
-/// Screen shown after "Place order" to choose COD or online payment.
+/// Screen shown after "Place order" or "Schedule order" to choose COD or online payment.
+/// [scheduledFor] if non-empty, order is scheduled for this ISO8601 date/time.
 class PaymentMethodScreen extends StatefulWidget {
-  const PaymentMethodScreen({super.key});
+  const PaymentMethodScreen({super.key, this.scheduledFor = ''});
+
+  final String scheduledFor;
 
   @override
   State<PaymentMethodScreen> createState() => _PaymentMethodScreenState();
@@ -26,6 +29,28 @@ class PaymentMethodScreen extends StatefulWidget {
 
 class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
   PaymentType? _selectedPaymentType;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cart = Provider.of<CartService>(context, listen: false);
+      if (widget.scheduledFor.isNotEmpty) {
+        cart.setScheduledFor(widget.scheduledFor);
+      } else {
+        cart.clearScheduledFor();
+      }
+    });
+  }
+
+  String _formatScheduledDateTime(String iso) {
+    try {
+      final dt = DateTime.parse(iso);
+      return '${dt.day}/${dt.month}/${dt.year} at ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return iso;
+    }
+  }
 
   void _onProceed(BuildContext context, CartService provider) {
     if (_selectedPaymentType == null) return;
@@ -49,7 +74,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
         elevation: 0,
         backgroundColor: _paymentSurface,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: Colors.grey.shade800),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -70,6 +96,35 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (widget.scheduledFor.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColor.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColor.primary.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.schedule_rounded,
+                              color: AppColor.primary, size: 22),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Scheduled for ${_formatScheduledDateTime(widget.scheduledFor)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    AppSpacing.h15,
+                  ],
                   Text(
                     'Choose how you want to pay',
                     style: TextStyle(
@@ -82,9 +137,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                   _PaymentOptionCard(
                     icon: Icons.payments_rounded,
                     title: 'Cash on Delivery (COD)',
-                    subtitle: 'Pay when your order is delivered',
+                    subtitle: 'Pay when you pick up your order',
                     isSelected: _selectedPaymentType == kPaymentCod,
-                    onTap: () => setState(() => _selectedPaymentType = kPaymentCod),
+                    onTap: () =>
+                        setState(() => _selectedPaymentType = kPaymentCod),
                   ),
                   AppSpacing.h15,
                   _PaymentOptionCard(
@@ -92,7 +148,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     title: 'Pay Online',
                     subtitle: 'Pay now with card, UPI or wallet',
                     isSelected: _selectedPaymentType == kPaymentOnline,
-                    onTap: () => setState(() => _selectedPaymentType = kPaymentOnline),
+                    onTap: () =>
+                        setState(() => _selectedPaymentType = kPaymentOnline),
                   ),
                   AppSpacing.h20,
                   Builder(
@@ -107,7 +164,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(_paymentCardRadius),
+                          borderRadius:
+                              BorderRadius.circular(_paymentCardRadius),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.04),
@@ -142,7 +200,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                             if (isOnline) ...[
                               const SizedBox(height: 12),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Online transaction fee (${kOnlineTransactionFeePercent.toStringAsFixed(1)}%)',
@@ -197,7 +256,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
           Container(
-            padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
+            padding: EdgeInsets.fromLTRB(
+                20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -304,9 +364,11 @@ class _PaymentOptionCard extends StatelessWidget {
                 ),
               ),
               if (isSelected)
-                Icon(Icons.check_circle_rounded, color: AppColor.primary, size: 28)
+                Icon(Icons.check_circle_rounded,
+                    color: AppColor.primary, size: 28)
               else
-                Icon(Icons.circle_outlined, color: Colors.grey.shade400, size: 28),
+                Icon(Icons.circle_outlined,
+                    color: Colors.grey.shade400, size: 28),
             ],
           ),
         ),

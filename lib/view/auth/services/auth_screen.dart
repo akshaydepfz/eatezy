@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:eatezy/view/auth/screens/customer_profile_add_screen.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginSrvice extends ChangeNotifier {
   bool _isVisible = false;
-  File? image;
+  Uint8List? imageBytes;
 
   TextEditingController nameController = TextEditingController();
   TextEditingController adresss = TextEditingController();
@@ -40,7 +40,40 @@ class LoginSrvice extends ChangeNotifier {
   }
 
   // ------------------------------------------------------------
-  // 🔥 VERIFY PHONE NUMBER (WEB + MOBILE FIXED)
+  // 🔥 SIGN IN WITH GOOGLE (WEB ONLY)
+  // ------------------------------------------------------------
+  Future<void> signInWithGoogle(BuildContext context) async {
+    if (!kIsWeb) return;
+    isLoading = true;
+    notifyListeners();
+    try {
+      final googleProvider = GoogleAuthProvider();
+      final userCredential = await _auth.signInWithPopup(googleProvider);
+      if (userCredential.user != null) {
+        final user = userCredential.user!;
+        nameController.text = user.displayName ?? '';
+        emailController.text = user.email ?? '';
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const CustomerDetailsAddScreen(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Google Sign-In Error: $e")),
+      );
+      log("Google Sign-In Error: $e");
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ------------------------------------------------------------
+  // 🔥 VERIFY PHONE NUMBER (MOBILE ONLY - WEB USES GOOGLE)
   // ------------------------------------------------------------
   Future<void> verifyPhoneNumber(BuildContext context) async {
     isLoading = true;
@@ -186,12 +219,12 @@ class LoginSrvice extends ChangeNotifier {
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      image = File(pickedFile.path);
+      imageBytes = await pickedFile.readAsBytes();
       notifyListeners();
     }
   }
 
-  Future<String> uploadImageToStorage(File imageFile) async {
+  Future<String> uploadImageToStorage(Uint8List bytes) async {
     try {
       isLoading = true;
       notifyListeners();
@@ -200,7 +233,7 @@ class LoginSrvice extends ChangeNotifier {
           .ref()
           .child('product_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
 
-      UploadTask uploadTask = storageRef.putFile(imageFile);
+      UploadTask uploadTask = storageRef.putData(bytes);
       TaskSnapshot taskSnapshot = await uploadTask;
 
       return await taskSnapshot.ref.getDownloadURL();
@@ -217,13 +250,24 @@ class LoginSrvice extends ChangeNotifier {
       );
       return;
     }
-    if (emailController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Please enter email address"),
-            backgroundColor: Colors.red),
-      );
-      return;
+    if (kIsWeb) {
+      if (mobileController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("Please enter phone number"),
+              backgroundColor: Colors.red),
+        );
+        return;
+      }
+    } else {
+      if (emailController.text.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text("Please enter email address"),
+              backgroundColor: Colors.red),
+        );
+        return;
+      }
     }
 
     final pref = await SharedPreferences.getInstance();
@@ -231,16 +275,22 @@ class LoginSrvice extends ChangeNotifier {
     notifyListeners();
 
     String imageUrl = "";
-
-    if (image != null) {
-      imageUrl = await uploadImageToStorage(image!);
+    if (imageBytes != null) {
+      imageUrl = await uploadImageToStorage(imageBytes!);
     }
+
+    final email = kIsWeb
+        ? (_auth.currentUser?.email ?? emailController.text)
+        : emailController.text;
+    final phone = kIsWeb
+        ? mobileController.text
+        : mobileController.text;
 
     await _firestore.collection('customers').doc(_auth.currentUser!.uid).set({
       'profile_image': imageUrl,
       'name': nameController.text,
-      'email': emailController.text,
-      'phone': mobileController.text,
+      'email': email,
+      'phone': phone,
       'uid': _auth.currentUser!.uid,
       'address': adresss.text,
       'created_date': DateTime.now().toString(),

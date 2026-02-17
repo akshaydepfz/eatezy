@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:eatezy/style/app_color.dart';
+import 'package:intl/intl.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/restaurants/screens/restaurant_view_screen.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,8 @@ class DeliveryTab extends StatelessWidget {
                   isRated: order.isRated,
                   rating: order.rating,
                   ratingText: order.ratingText,
+                  isScheduled: order.isScheduled,
+                  scheduledFor: order.scheduledFor,
                   onReviewTap: () => p.showReviewDialog(context, order.id),
                   onOrderAgainTap: () {
                     final vendor = p.findVendorById(order.vendorId);
@@ -103,6 +106,16 @@ String _formatOrderStatus(String status) {
       .join(' ');
 }
 
+String _formatScheduledTime(String scheduledFor) {
+  if (scheduledFor.isEmpty) return '';
+  try {
+    final dt = DateTime.parse(scheduledFor);
+    return DateFormat('MMM d, yyyy · h:mm a').format(dt);
+  } catch (_) {
+    return scheduledFor;
+  }
+}
+
 class _DeliveryOrderCard extends StatelessWidget {
   const _DeliveryOrderCard({
     required this.image,
@@ -119,6 +132,8 @@ class _DeliveryOrderCard extends StatelessWidget {
     this.packingFee = 0.0,
     this.platformFee = 0.0,
     this.transactionFee = 0.0,
+    this.isScheduled = false,
+    this.scheduledFor = '',
   });
 
   final String image;
@@ -135,6 +150,8 @@ class _DeliveryOrderCard extends StatelessWidget {
   final double rating;
   final bool isRated;
   final String ratingText;
+  final bool isScheduled;
+  final String scheduledFor;
 
   @override
   Widget build(BuildContext context) {
@@ -211,6 +228,53 @@ class _DeliveryOrderCard extends StatelessWidget {
                           ),
                         ],
                       ),
+                      if (isScheduled && scheduledFor.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 18,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Scheduled for',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade600,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _formatScheduledTime(scheduledFor),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade900,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(10),

@@ -8,11 +8,23 @@ import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Order total + transaction fee (amount paid) for display.
 String _formatOrderTotal(String totalPrice, double transactionFee) {
   final base = double.tryParse(totalPrice) ?? 0.0;
   return (base + transactionFee).toStringAsFixed(2);
+}
+
+/// Formats scheduledFor ISO8601 string for display.
+String _formatScheduledTime(String scheduledFor) {
+  if (scheduledFor.isEmpty) return '';
+  try {
+    final dt = DateTime.parse(scheduledFor);
+    return DateFormat('MMM d, yyyy · h:mm a').format(dt);
+  } catch (_) {
+    return scheduledFor;
+  }
 }
 
 /// Formats order status for display (e.g. "ready_for_pickup" → "Ready for pickup").
@@ -84,6 +96,13 @@ class ProcessingTab extends StatelessWidget {
                     ),
                   );
                 },
+                onCall: () {
+                  final phone = order.vendorPhone.trim();
+                  final uri = phone.startsWith('+')
+                      ? Uri.parse('tel:$phone')
+                      : Uri.parse('tel:+91$phone');
+                  launchUrl(uri);
+                },
                 canCancel: order.orderStatus == 'Waiting',
               ),
             );
@@ -100,6 +119,7 @@ class _ProcessingOrderCard extends StatelessWidget {
     required this.width,
     required this.onCancel,
     required this.onGetDirection,
+    required this.onCall,
     required this.canCancel,
   });
 
@@ -107,6 +127,7 @@ class _ProcessingOrderCard extends StatelessWidget {
   final double width;
   final VoidCallback onCancel;
   final VoidCallback onGetDirection;
+  final VoidCallback onCall;
   final bool canCancel;
 
   @override
@@ -416,6 +437,53 @@ class _ProcessingOrderCard extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (order.isScheduled && order.scheduledFor.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          size: 18,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Scheduled for',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatScheduledTime(order.scheduledFor),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -505,6 +573,16 @@ class _ProcessingOrderCard extends StatelessWidget {
                     ),
                   ),
                 if (canCancel) const SizedBox(width: 12),
+                if (order.vendorPhone.trim().isNotEmpty) ...[
+                  Expanded(
+                    child: _OutlinedActionButton(
+                      label: 'Call',
+                      onTap: onCall,
+                      isDestructive: false,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 Expanded(
                   child: _FilledActionButton(
                     label: 'Get Direction',

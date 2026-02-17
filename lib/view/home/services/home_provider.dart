@@ -36,6 +36,27 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> getFcmToken() async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+      // iOS permission
+      await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      String? token = await messaging.getToken();
+
+      print("FCM Token: $token");
+      return token;
+    } catch (e) {
+      print("FCM Token Error: $e");
+      return null;
+    }
+  }
+
   List<Widget> pages = const [
     HomeScreen(),
     CategoryScreen(),
