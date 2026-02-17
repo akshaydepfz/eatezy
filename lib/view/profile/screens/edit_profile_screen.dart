@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/primary_button.dart';
@@ -18,7 +19,7 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
-  File? _pickedImage;
+  XFile? _pickedImage;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -39,8 +40,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickImage() async {
     final picked = await _picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() => _pickedImage = File(picked.path));
+      setState(() => _pickedImage = picked);
     }
+  }
+
+  Widget _buildProfileAvatar(String existingImageUrl) {
+    if (_pickedImage != null) {
+      return FutureBuilder<Uint8List>(
+        future: _pickedImage!.readAsBytes(),
+        builder: (context, snapshot) {
+          return CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.grey.shade200,
+            backgroundImage:
+                snapshot.hasData ? MemoryImage(snapshot.data!) : null,
+          );
+        },
+      );
+    }
+    return CircleAvatar(
+      radius: 50,
+      backgroundColor: Colors.grey.shade200,
+      backgroundImage: existingImageUrl.isNotEmpty
+          ? NetworkImage(existingImageUrl)
+          : null,
+    );
   }
 
   @override
@@ -52,12 +76,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
-    final displayImage = _pickedImage != null
-        ? FileImage(_pickedImage!)
-        : (customer.image.isNotEmpty
-            ? NetworkImage(customer.image) as ImageProvider
-            : null);
 
     return Scaffold(
       appBar: AppBar(
@@ -75,11 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.grey.shade200,
-                      backgroundImage: displayImage,
-                    ),
+                    _buildProfileAvatar(customer.image),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(

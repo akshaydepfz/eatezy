@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:eatezy/model/customer_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -31,10 +31,11 @@ class ProfileService extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<String> _uploadImageToStorage(File imageFile) async {
+  Future<String> _uploadImageToStorage(XFile imageFile) async {
     final ref = FirebaseStorage.instance.ref().child(
         'profile_images/${FirebaseAuth.instance.currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg');
-    final task = ref.putFile(imageFile);
+    final bytes = await imageFile.readAsBytes();
+    final task = ref.putData(bytes);
     final snapshot = await task;
     return await snapshot.ref.getDownloadURL();
   }
@@ -43,7 +44,7 @@ class ProfileService extends ChangeNotifier {
     BuildContext context, {
     required String name,
     required String email,
-    File? newProfileImage,
+    XFile? newProfileImage,
   }) async {
     if (customer == null) return;
     if (name.trim().isEmpty) {
