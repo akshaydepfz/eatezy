@@ -1,8 +1,36 @@
 import 'package:eatezy/model/vendor_model.dart';
+import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 const double kRestaurantCardRadius = 16;
+
+/// Computes distance from user's current location to restaurant.
+String _computeDistance(HomeProvider homeProvider, VendorModel vendor) {
+  final userLat = homeProvider.latitude;
+  final userLng = homeProvider.longitude;
+  if (userLat == null || userLng == null) return vendor.estimateDistance;
+
+  final vendorLat = double.tryParse(vendor.lat);
+  final vendorLng = double.tryParse(vendor.long);
+  if (vendorLat == null || vendorLng == null) return vendor.estimateDistance;
+
+  final distanceInMeters = Geolocator.distanceBetween(
+    userLat,
+    userLng,
+    vendorLat,
+    vendorLng,
+  );
+  final distanceInKm = distanceInMeters / 1000;
+
+  if (distanceInKm < 1) {
+    return '${distanceInMeters.round()} m';
+  } else {
+    return '${distanceInKm.toStringAsFixed(2)} km';
+  }
+}
 
 class RestaurantCard extends StatelessWidget {
   const RestaurantCard({
@@ -17,7 +45,10 @@ class RestaurantCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = vendor.isActive;
-    return Opacity(
+    return Consumer<HomeProvider>(
+      builder: (context, homeProvider, _) {
+        final distance = _computeDistance(homeProvider, vendor);
+        return Opacity(
       opacity: isActive ? 1 : 0.7,
       child: Material(
         color: Colors.transparent,
@@ -89,8 +120,8 @@ class RestaurantCard extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
-                                    vendor.estimateDistance.isNotEmpty
-                                        ? '${vendor.estimateDistance} away'
+                                    distance.isNotEmpty
+                                        ? '$distance away'
                                         : vendor.shopAddress.isNotEmpty
                                             ? vendor.shopAddress
                                             : '—',
@@ -194,6 +225,8 @@ class RestaurantCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

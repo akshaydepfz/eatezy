@@ -7,6 +7,7 @@ import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
+import 'package:eatezy/view/home/services/home_provider.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
 import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:flutter/material.dart';
@@ -230,25 +231,50 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                 ],
               ),
               AppSpacing.h10,
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Consumer<HomeProvider>(
+                builder: (context, homeProvider, _) {
+                  final distance = homeProvider.computeDistanceToVendor(widget.vendor);
+                  final distanceText = distance.isNotEmpty
+                      ? '$distance away'
+                      : widget.vendor.estimateDistance.isNotEmpty
+                          ? '${widget.vendor.estimateDistance} away'
+                          : '';
+                  return Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.grey,
-                          size: 16,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: Colors.grey,
+                              size: 16,
+                            ),
+                            AppSpacing.w5,
+                            Text(
+                              distanceText.isNotEmpty
+                                  ? '4.7 (400+ Ratings) | $distanceText'
+                                  : '4.7 (400+ Ratings)',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                         ),
-                        AppSpacing.w5,
-                        Text(
-                          '4.7 (400+ Ratings) | ${widget.vendor.estimateDistance} away',
-                          style: TextStyle(color: Colors.grey),
+                        AppSpacing.h5,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule_rounded,
+                              color: Colors.grey,
+                              size: 16,
+                            ),
+                            AppSpacing.w5,
+                            Text(
+                              'Prep time: 25-30 min',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                     AppSpacing.h10,
                     GestureDetector(
                       onTap: () {
@@ -294,7 +320,9 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                                       style: TextStyle(fontSize: 16),
                                     ),
                                     Text(
-                                        '${widget.vendor.estimateDistance} away from you'),
+                                        distanceText.isNotEmpty
+                                            ? '$distanceText from you'
+                                            : 'Tap for directions'),
                                   ],
                                 ),
                               ],
@@ -553,6 +581,8 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                     ),
                   ],
                 ),
+              );
+                },
               ),
             ],
           ),

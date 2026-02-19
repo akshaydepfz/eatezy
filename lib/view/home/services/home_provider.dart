@@ -64,6 +64,25 @@ class HomeProvider extends ChangeNotifier {
     ProfileScreen(),
   ];
 
+  /// Computes distance from user's current location to a vendor. Returns empty string if location unavailable.
+  String computeDistanceToVendor(VendorModel vendor) {
+    if (_latitude == null || _longitude == null) return vendor.estimateDistance;
+    final vendorLat = double.tryParse(vendor.lat);
+    final vendorLng = double.tryParse(vendor.long);
+    if (vendorLat == null || vendorLng == null) return vendor.estimateDistance;
+    final distanceInMeters = Geolocator.distanceBetween(
+      _latitude!,
+      _longitude!,
+      vendorLat,
+      vendorLng,
+    );
+    final distanceInKm = distanceInMeters / 1000;
+    if (distanceInKm < 1) {
+      return '${distanceInMeters.round()} m';
+    }
+    return '${distanceInKm.toStringAsFixed(2)} km';
+  }
+
   String formatTime(double minutes) {
     if (minutes < 60) {
       return '${minutes.toStringAsFixed(0)} min';
