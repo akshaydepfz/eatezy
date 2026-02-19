@@ -1,6 +1,8 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/utils/location_utils.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
@@ -42,8 +44,8 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
     });
 
     try {
-      // Try to get current location for initial map center
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      // On web, isLocationServiceEnabled returns false - skip check and try directly
+      bool serviceEnabled = kIsWeb || await Geolocator.isLocationServiceEnabled();
       if (serviceEnabled) {
         LocationPermission permission = await Geolocator.checkPermission();
         if (permission == LocationPermission.whileInUse ||
@@ -83,7 +85,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
     });
 
     try {
-      List<Location> locations = await locationFromAddress(query);
+      List<Location> locations = await locationFromAddressWebSafe(query);
       setState(() {
         _searchResults =
             locations.map((loc) => {'location': loc, 'query': query}).toList();
@@ -108,8 +110,8 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
     });
 
     try {
-      // Check location permission
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      // On web, isLocationServiceEnabled returns false - skip check
+      bool serviceEnabled = kIsWeb || await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -159,8 +161,8 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // Get address from coordinates
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      // Get address from coordinates (web-safe: uses Nominatim on web)
+      List<Placemark> placemarks = await placemarkFromCoordinatesWebSafe(
         position.latitude,
         position.longitude,
       );
@@ -206,8 +208,8 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
 
   Future<void> _selectLocation(Location location) async {
     try {
-      // Get address from coordinates
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      // Get address from coordinates (web-safe)
+      List<Placemark> placemarks = await placemarkFromCoordinatesWebSafe(
         location.latitude,
         location.longitude,
       );
@@ -240,9 +242,9 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
   }
 
   Future<void> _onMapTap(TapPosition tapPosition, LatLng point) async {
-    // When user taps on map, select that location
+    // When user taps on map, select that location (web-safe)
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      List<Placemark> placemarks = await placemarkFromCoordinatesWebSafe(
         point.latitude,
         point.longitude,
       );

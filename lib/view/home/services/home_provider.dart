@@ -11,6 +11,7 @@ import 'package:eatezy/view/home/screens/home_screen.dart';
 import 'package:eatezy/view/profile/screens/profile_screen.dart';
 import 'package:eatezy/view/restaurants/screens/restaurants_list.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:eatezy/utils/location_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -250,7 +251,7 @@ class HomeProvider extends ChangeNotifier {
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      List<Placemark> placemarks = await placemarkFromCoordinatesWebSafe(
         position.latitude,
         position.longitude,
       );
