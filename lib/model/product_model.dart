@@ -15,11 +15,9 @@ class ProductModel {
   String shopName;
   bool isActive;
 
-  /// Time when product becomes available (e.g. "09:00"). Null = no restriction.
-  String? availableFromTime;
-
-  /// Time when product becomes unavailable (e.g. "18:00"). Null = no restriction.
-  String? availableToTime;
+  /// Multiple time slots when product is available.
+  /// Example: [{"from":"09:00","to":"11:00"},{"from":"18:00","to":"21:00"}]
+  final List<Map<String, String>> availabilitySlots;
 
   ProductModel(
       {required this.id,
@@ -37,13 +35,10 @@ class ProductModel {
       required this.shopName,
       required this.isActive,
       required this.vendorID,
-      this.availableFromTime,
-      this.availableToTime});
+      required this.availabilitySlots});
 
   /// True if product has time-based availability (either from or to is set).
-  bool get hasTimeRestriction =>
-      (availableFromTime != null && availableFromTime!.isNotEmpty) ||
-      (availableToTime != null && availableToTime!.isNotEmpty);
+  bool get hasTimeRestriction => availabilitySlots.isNotEmpty;
 
   /// True if product is currently available based on time window.
   /// When no time restriction, returns true.
@@ -52,23 +47,18 @@ class ProductModel {
     final now = DateTime.now();
     final nowMinutes = now.hour * 60 + now.minute;
 
-    if (availableFromTime != null && availableFromTime!.isNotEmpty) {
-      final parts = availableFromTime!.split(':');
-      if (parts.length >= 2) {
-        final fromMinutes =
-            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
-        if (nowMinutes < fromMinutes) return false;
-      }
+    for (final slot in availabilitySlots) {
+      final from = _parseTimeToMinutes(slot['from'] ?? slot['start']);
+      final to = _parseTimeToMinutes(slot['to'] ?? slot['end']);
+      if (from == null || to == null) continue;
+
+      // Normal same-day slot: from <= to (e.g. 09:00-11:00)
+      if (from <= to && nowMinutes >= from && nowMinutes <= to) return true;
+
+      // Overnight slot: from > to (e.g. 22:00-02:00)
+      if (from > to && (nowMinutes >= from || nowMinutes <= to)) return true;
     }
-    if (availableToTime != null && availableToTime!.isNotEmpty) {
-      final parts = availableToTime!.split(':');
-      if (parts.length >= 2) {
-        final toMinutes =
-            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
-        if (nowMinutes > toMinutes) return false;
-      }
-    }
-    return true;
+    return false;
   }
 
   /// When product is not available due to time, returns the time it becomes available (e.g. "09:00").
@@ -79,23 +69,21 @@ class ProductModel {
     final now = DateTime.now();
     final nowMinutes = now.hour * 60 + now.minute;
 
-    if (availableFromTime != null && availableFromTime!.isNotEmpty) {
-      final parts = availableFromTime!.split(':');
-      if (parts.length >= 2) {
-        final fromMinutes =
-            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
-        if (nowMinutes < fromMinutes) return availableFromTime;
+    int? bestDelta;
+    String? bestStart;
+    for (final slot in availabilitySlots) {
+      final startRaw = (slot['from'] ?? slot['start'] ?? '').trim();
+      if (startRaw.isEmpty) continue;
+      final from = _parseTimeToMinutes(startRaw);
+      if (from == null) continue;
+
+      final delta = from >= nowMinutes ? from - nowMinutes : (24 * 60 - nowMinutes) + from;
+      if (bestDelta == null || delta < bestDelta) {
+        bestDelta = delta;
+        bestStart = startRaw;
       }
     }
-    if (availableToTime != null && availableToTime!.isNotEmpty) {
-      final parts = availableToTime!.split(':');
-      if (parts.length >= 2) {
-        final toMinutes =
-            (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
-        if (nowMinutes > toMinutes) return availableFromTime ?? availableToTime;
-      }
-    }
-    return null;
+    return bestStart;
   }
 
   /// True when product can be added to cart (active + within time window).
@@ -120,8 +108,8 @@ class ProductModel {
       shopName: shopName,
       vendorID: vendorID,
       isActive: isActive,
-      availableFromTime: availableFromTime,
-      availableToTime: availableToTime,
+      availabilitySlots:
+          availabilitySlots.map((slot) => Map<String, String>.from(slot)).toList(),
     );
   }
 
@@ -149,14 +137,82 @@ class ProductModel {
           : (data['is_active'] is bool
               ? data['is_active'] as bool
               : data['is_active'].toString().toLowerCase() == 'true'),
-      availableFromTime:
-          data['available_from_time']?.toString().trim().isNotEmpty == true
-              ? data['available_from_time'].toString()
-              : null,
-      availableToTime:
-          data['available_to_time']?.toString().trim().isNotEmpty == true
-              ? data['available_to_time'].toString()
-              : null,
+      availabilitySlots: _parseAvailabilitySlots(data),
     );
+  }
+
+  static List<Map<String, String>> _parseAvailabilitySlots(
+      Map<String, dynamic> data) {
+    final rawSlots = data['availability_slots'];
+    if (rawSlots is List) {
+      final slots = <Map<String, String>>[];
+      for (final item in rawSlots) {
+        if (item is! Map) continue;
+        final rawFrom = (item['from'] ??
+                item['start'] ??
+                item['available_from_time'] ??
+                item['from_time'] ??
+                '')
+            .toString()
+            .trim();
+        final rawTo =
+            (item['to'] ?? item['end'] ?? item['available_to_time'] ?? item['to_time'] ?? '')
+                .toString()
+                .trim();
+        if (rawFrom.isEmpty || rawTo.isEmpty) continue;
+        slots.add({'from': rawFrom, 'to': rawTo});
+      }
+      if (slots.isNotEmpty) return slots;
+    }
+
+    // Backward compatibility: old single window fields.
+    final from = data['available_from_time']?.toString().trim() ?? '';
+    final to = data['available_to_time']?.toString().trim() ?? '';
+    if (from.isNotEmpty && to.isNotEmpty) {
+      return [
+        {'from': from, 'to': to}
+      ];
+    }
+    return [];
+  }
+
+  static int? _parseTimeToMinutes(String? rawTime) {
+    if (rawTime == null) return null;
+    final value = rawTime.trim().toLowerCase();
+    if (value.isEmpty) return null;
+
+    // Supports "09:00", "9:00", "9am", "9 am", "9:30pm", etc.
+    final timeWithMeridiem = RegExp(r'^(\d{1,2})(?::(\d{1,2}))?\s*([ap]m)$');
+    final match = timeWithMeridiem.firstMatch(value);
+    if (match != null) {
+      var hour = int.tryParse(match.group(1) ?? '');
+      final minute = int.tryParse(match.group(2) ?? '0') ?? 0;
+      final meridiem = match.group(3);
+      if (hour == null || minute < 0 || minute > 59 || hour < 1 || hour > 12) {
+        return null;
+      }
+      if (meridiem == 'am') {
+        if (hour == 12) hour = 0;
+      } else if (hour != 12) {
+        hour += 12;
+      }
+      return hour * 60 + minute;
+    }
+
+    final parts = value.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0]);
+      final minute = int.tryParse(parts[1]);
+      if (hour == null ||
+          minute == null ||
+          hour < 0 ||
+          hour > 23 ||
+          minute < 0 ||
+          minute > 59) {
+        return null;
+      }
+      return hour * 60 + minute;
+    }
+    return null;
   }
 }

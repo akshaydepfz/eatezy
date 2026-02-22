@@ -20,6 +20,14 @@ class ScheduleSlotScreen extends StatefulWidget {
 
 class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
   String? _selectedSlot;
+  late DateTime _selectedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +67,8 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
 
     final opening = _parseTime(vendor.openingTime);
     final closing = _parseTime(vendor.closingTime);
-    final slots = _generateSlots(opening, closing);
+    final dateOptions = _buildDateOptions();
+    final slots = _generateSlots(opening, closing, _selectedDate);
 
     return Scaffold(
       backgroundColor: _surface,
@@ -132,7 +141,7 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 DateFormat('EEEE, d MMMM yyyy')
-                                    .format(DateTime.now()),
+                                    .format(_selectedDate),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -151,6 +160,37 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  AppSpacing.h20,
+                  Text(
+                    'Select date',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                  AppSpacing.h10,
+                  SizedBox(
+                    height: 70,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: dateOptions.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) {
+                        final date = dateOptions[index];
+                        final isSelected = _isSameDate(_selectedDate, date);
+                        return _DateChip(
+                          label: _dateLabel(date),
+                          subLabel: DateFormat('d MMM').format(date),
+                          isSelected: isSelected,
+                          onTap: () => setState(() {
+                            _selectedDate = date;
+                            _selectedSlot = null;
+                          }),
+                        );
+                      },
                     ),
                   ),
                   AppSpacing.h20,
@@ -183,7 +223,7 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
                                 size: 48, color: Colors.grey.shade400),
                             AppSpacing.h15,
                             Text(
-                              'No slots available for today',
+                              'No slots available for selected date',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -251,9 +291,10 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
                           ? AppColor.primary
                           : Colors.grey.shade300,
                     ),
-                    onPressed: _selectedSlot != null
-                        ? () => _onContinue(context)
-                        : null,
+                    onPressed:
+                        _selectedSlot != null && slots.contains(_selectedSlot)
+                            ? () => _onContinue(context)
+                            : null,
                     child: const Text(
                       'Continue',
                       style: TextStyle(
@@ -280,8 +321,13 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
     final hour = int.tryParse(parts[0]) ?? 0;
     final minute = int.tryParse(parts[1]) ?? 0;
 
-    final now = DateTime.now();
-    final scheduled = DateTime(now.year, now.month, now.day, hour, minute);
+    final scheduled = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      hour,
+      minute,
+    );
     final scheduledFor = scheduled.toIso8601String();
 
     Navigator.push(
@@ -290,6 +336,26 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
         builder: (context) => PaymentMethodScreen(scheduledFor: scheduledFor),
       ),
     );
+  }
+
+  List<DateTime> _buildDateOptions() {
+    final now = DateTime.now();
+    final base = DateTime(now.year, now.month, now.day);
+    return List.generate(7, (index) => base.add(Duration(days: index)));
+  }
+
+  String _dateLabel(DateTime date) {
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final tomorrow = todayOnly.add(const Duration(days: 1));
+
+    if (_isSameDate(date, todayOnly)) return 'Today';
+    if (_isSameDate(date, tomorrow)) return 'Tomorrow';
+    return DateFormat('EEE').format(date);
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
 
@@ -333,6 +399,68 @@ class _SlotChip extends StatelessWidget {
                 color: isSelected ? AppColor.primary : Colors.grey.shade800,
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DateChip extends StatelessWidget {
+  const _DateChip({
+    required this.label,
+    required this.subLabel,
+    required this.onTap,
+    this.isSelected = false,
+  });
+
+  final String label;
+  final String subLabel;
+  final VoidCallback onTap;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      elevation: 1,
+      shadowColor: Colors.black.withOpacity(0.04),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 88,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? AppColor.primary : Colors.grey.shade200,
+              width: isSelected ? 2 : 1,
+            ),
+            color: isSelected ? AppColor.primary.withOpacity(0.08) : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: isSelected ? AppColor.primary : Colors.grey.shade800,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: isSelected ? AppColor.primary : Colors.grey.shade600,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -385,7 +513,8 @@ class _SlotChip extends StatelessWidget {
 
 /// Generates time slots from opening to closing, excluding past slots for today.
 /// Handles overnight hours (e.g. 11pm-2am) by treating closing as next day.
-List<String> _generateSlots((int, int) opening, (int, int) closing) {
+List<String> _generateSlots(
+    (int, int) opening, (int, int) closing, DateTime selectedDate) {
   final now = DateTime.now();
   var startHour = opening.$1;
   var startMinute = opening.$2;
@@ -424,17 +553,22 @@ List<String> _generateSlots((int, int) opening, (int, int) closing) {
     }
 
     final slotStartTime = DateTime(
-      now.year,
-      now.month,
-      now.day,
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
       displayHour,
       currentMinute,
     );
-    // Include slot if it starts now or in the future (allow 30 min buffer)
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDay =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    final isToday = selectedDay == today;
+
+    // For today, hide already-passed slots. For future dates, keep all slots.
     final minAcceptable =
         DateTime(now.year, now.month, now.day, now.hour, now.minute)
             .subtract(const Duration(minutes: 30));
-    if (!slotStartTime.isBefore(minAcceptable)) {
+    if (!isToday || !slotStartTime.isBefore(minAcceptable)) {
       filteredSlots.add(slotStart);
     }
 
