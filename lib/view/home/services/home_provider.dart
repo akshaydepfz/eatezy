@@ -84,6 +84,37 @@ class HomeProvider extends ChangeNotifier {
     return '${distanceInKm.toStringAsFixed(2)} km';
   }
 
+  /// Returns distance in kilometers for sorting; unknown distances go to the end.
+  double distanceInKmForSorting(VendorModel vendor) {
+    if (_latitude != null && _longitude != null) {
+      final vendorLat = double.tryParse(vendor.lat);
+      final vendorLng = double.tryParse(vendor.long);
+      if (vendorLat != null && vendorLng != null) {
+        final distanceInMeters = Geolocator.distanceBetween(
+          _latitude!,
+          _longitude!,
+          vendorLat,
+          vendorLng,
+        );
+        return distanceInMeters / 1000;
+      }
+    }
+    return _parseEstimatedDistanceToKm(vendor.estimateDistance) ??
+        double.infinity;
+  }
+
+  double? _parseEstimatedDistanceToKm(String rawDistance) {
+    final text = rawDistance.trim().toLowerCase();
+    if (text.isEmpty) return null;
+    final number = double.tryParse(
+      text.replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
+    if (number == null) return null;
+    if (text.contains('km')) return number;
+    if (text.contains('m')) return number / 1000;
+    return number;
+  }
+
   String formatTime(double minutes) {
     if (minutes < 60) {
       return '${minutes.toStringAsFixed(0)} min';

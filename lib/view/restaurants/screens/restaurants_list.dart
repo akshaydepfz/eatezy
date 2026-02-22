@@ -85,6 +85,10 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
                   if (filtered.isEmpty) {
                     return const _NoSearchResultsState();
                   }
+                  final sortedFiltered = List.of(filtered)
+                    ..sort((a, b) => homeProvider
+                        .distanceInKmForSorting(a)
+                        .compareTo(homeProvider.distanceInKmForSorting(b)));
                   return CustomScrollView(
                     slivers: [
                       SliverPadding(
@@ -95,7 +99,7 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
                             child: Text(
                               _searchController.text.trim().isEmpty
                                   ? 'All Restaurants'
-                                  : '${filtered.length} result${filtered.length == 1 ? '' : 's'}',
+                                      : '${sortedFiltered.length} result${sortedFiltered.length == 1 ? '' : 's'}',
                               style: GoogleFonts.rubik(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -110,7 +114,7 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, i) {
-                              final vendor = filtered[i];
+                              final vendor = sortedFiltered[i];
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 14),
                                 child: RestaurantCard(
@@ -130,7 +134,7 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
                                 ),
                               );
                             },
-                            childCount: filtered.length,
+                            childCount: sortedFiltered.length,
                           ),
                         ),
                       ),

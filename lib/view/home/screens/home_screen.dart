@@ -345,34 +345,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
+                  final sortedVendors = List.of(p.vendors!)
+                    ..sort((a, b) => p
+                        .distanceInKmForSorting(a)
+                        .compareTo(p.distanceInKmForSorting(b)));
                   return SizedBox(
                     height: 200,
                     child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         shrinkWrap: true,
-                        itemCount: p.vendors!.length,
+                        itemCount: sortedVendors.length,
                         itemBuilder: (context, i) {
-                          final vendor = p.vendors![i];
+                          final vendor = sortedVendors[i];
                           final distance = p.computeDistanceToVendor(vendor);
                           return RestuarantCard(
                               distance: distance.isNotEmpty
                                   ? '$distance away'
                                   : vendor.estimateDistance,
                               time: '20 to 30 mints',
-                              isActive: p.vendors![i].isActive,
-                              openingTime: p.vendors![i].openingTime,
-                              closingTime: p.vendors![i].closingTime,
+                              isActive: vendor.isActive,
+                              openingTime: vendor.openingTime,
+                              closingTime: vendor.closingTime,
                               onTap: () {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             RestaurantViewScreen(
-                                              vendor: p.vendors![i],
+                                              vendor: vendor,
                                             )));
                               },
-                              image: p.vendors![i].shopImage,
-                              name: p.vendors![i].shopName);
+                              image: vendor.shopImage,
+                              name: vendor.shopName);
                         }),
                   );
                 }),
