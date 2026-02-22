@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:eatezy/model/coupon_model.dart';
 import 'package:eatezy/model/customer_model.dart';
@@ -10,7 +8,6 @@ import 'package:eatezy/view/cart/screens/success_screen.dart';
 import 'package:eatezy/view/cart/services/payment_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 /// Admin collection doc ID for platform settings.
@@ -18,10 +15,6 @@ const String _adminDocId = 'vcEyyBUUm5NAwliB3dTX';
 
 /// Online payment transaction fee (2.5%). Applied to amount when paying online.
 const double kOnlineTransactionFeePercent = 2.5;
-
-/// HTTPS endpoint for server-side FCM relay (Cloud Function/Backend API).
-/// Pass at build time: --dart-define=FCM_RELAY_URL=https://your-endpoint/send
-const String _fcmRelayUrl = String.fromEnvironment('FCM_RELAY_URL');
 
 class CartService extends ChangeNotifier {
   List<ProductModel> selectedProduct = [];
@@ -68,23 +61,6 @@ class CartService extends ChangeNotifier {
       }
     } catch (e) {
       print('Error fetching platform charge: $e');
-    }
-  }
-
-  Future<String?> _fetchAdminFcmToken() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('admin')
-          .doc(_adminDocId)
-          .get();
-      if (!doc.exists || doc.data() == null) return null;
-
-      final token = doc.data()!['fcm_token']?.toString().trim();
-      if (token == null || token.isEmpty) return null;
-      return token;
-    } catch (e) {
-      print('Error fetching admin fcm token: $e');
-      return null;
     }
   }
 
@@ -447,7 +423,6 @@ class CartService extends ChangeNotifier {
   Future<void> _placeOrderAndNavigate({bool isPaid = true}) async {
     final context = _paymentContext;
     if (context == null || !context.mounted) return;
-    final adminFcm = await _fetchAdminFcmToken();
 
     Map<String, List<ProductModel>> productsByVendor = {};
     for (var product in selectedProduct) {
@@ -516,13 +491,6 @@ class CartService extends ChangeNotifier {
                   0.0,
           platformCharge: cartPlatformFee);
 
-      final vendorFcm = findVendorById(vendorId)?.fcmToken;
-      if (vendorFcm != null && vendorFcm.isNotEmpty) {
-        sendFCMMessage(vendorFcm, 'New order placed');
-      }
-      if (adminFcm != null && adminFcm.isNotEmpty) {
-        sendFCMMessage(adminFcm, 'New order placed');
-      }
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
 
@@ -542,38 +510,5 @@ class CartService extends ChangeNotifier {
         MaterialPageRoute(builder: (context) => SuccessScreen()),
       );
     }
-  }
-}
-
-Future<void> sendFCMMessage(String token, String text) async {
-  if (_fcmRelayUrl.isEmpty) {
-    print('FCM relay URL missing. Set --dart-define=FCM_RELAY_URL=...');
-    return;
-  }
-
-  final currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser == null) return;
-  final idToken = await currentUser.getIdToken();
-  if (idToken == null || idToken.isEmpty) return;
-
-  final Map<String, dynamic> message = {
-    'token': token,
-    'title': 'New Message Received',
-    'body': text,
-  };
-
-  final http.Response response = await http.post(
-    Uri.parse(_fcmRelayUrl),
-    headers: <String, String>{
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $idToken',
-    },
-    body: jsonEncode(message),
-  );
-
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    print('FCM message sent successfully');
-  } else {
-    print('Failed to send FCM message: ${response.statusCode} ${response.body}');
   }
 }
