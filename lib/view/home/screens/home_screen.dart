@@ -148,6 +148,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 AppSpacing.h20,
+                const _SelfPickupInstructionCard(),
+                AppSpacing.h20,
                 Text(
                   'Categories',
                   style: GoogleFonts.rubik(
@@ -642,6 +644,118 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       ),
+    );
+  }
+}
+
+class _SelfPickupInstructionCard extends StatelessWidget {
+  const _SelfPickupInstructionCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: const LinearGradient(
+          colors: [AppColor.selfPickupBgStart, AppColor.selfPickupBgEnd],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            'Introducing Self Pickup',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 19,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Order for pickup. Skip the queue!',
+            style: TextStyle(
+              color: AppColor.selfPickupSubtitle,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _InstructionStep(
+                  icon: Icons.receipt_long,
+                  title: 'Place your order',
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColor.selfPickupArrow,
+              ),
+              SizedBox(width: 6),
+              Expanded(
+                child: _InstructionStep(
+                  icon: Icons.storefront_rounded,
+                  title: 'Reach on ready',
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: AppColor.selfPickupArrow,
+              ),
+              SizedBox(width: 6),
+              Expanded(
+                child: _InstructionStep(
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'Grab your order',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InstructionStep extends StatelessWidget {
+  const _InstructionStep({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          height: 48,
+          width: 48,
+          decoration: BoxDecoration(
+            color: AppColor.selfPickupStepFill,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColor.selfPickupStepBorder),
+          ),
+          child: Icon(icon, color: Colors.white, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
