@@ -360,7 +360,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, i) {
                           final vendor = sortedVendors[i];
                           final distance = p.computeDistanceToVendor(vendor);
-                          final estimatedTime = p.computeEstimatedTimeToVendor(vendor);
+                          final estimatedTime =
+                              p.computeEstimatedTimeToVendor(vendor);
                           return RestuarantCard(
                               distance: distance.isNotEmpty
                                   ? '$distance away'

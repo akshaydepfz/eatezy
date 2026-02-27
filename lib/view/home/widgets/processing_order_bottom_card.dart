@@ -148,7 +148,7 @@ class ProcessingOrderBottomCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Call',
+                              'call for pick up help',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,

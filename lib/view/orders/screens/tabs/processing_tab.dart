@@ -562,33 +562,36 @@ class _ProcessingOrderCard extends StatelessWidget {
           // Actions
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (canCancel)
-                  Expanded(
-                    child: _OutlinedActionButton(
-                      label: 'Cancel Order',
-                      onTap: onCancel,
-                      isDestructive: true,
+                Row(
+                  children: [
+                    if (canCancel)
+                      Expanded(
+                        child: _OutlinedActionButton(
+                          label: 'Cancel Order',
+                          onTap: onCancel,
+                          isDestructive: true,
+                        ),
+                      ),
+                    if (canCancel) const SizedBox(width: 12),
+                    Expanded(
+                      child: _FilledActionButton(
+                        label: 'Get Direction',
+                        onTap: onGetDirection,
+                      ),
                     ),
-                  ),
-                if (canCancel) const SizedBox(width: 12),
-                if (order.vendorPhone.trim().isNotEmpty) ...[
-                  Expanded(
-                    child: _OutlinedActionButton(
-                      label: 'Call',
-                      onTap: onCall,
-                      isDestructive: false,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                ],
-                Expanded(
-                  child: _FilledActionButton(
-                    label: 'Get Direction',
-                    onTap: onGetDirection,
-                  ),
+                  ],
                 ),
+                if (order.vendorPhone.trim().isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _OutlinedActionButton(
+                    label: 'Call for pick up help',
+                    onTap: onCall,
+                    isDestructive: false,
+                  ),
+                ],
               ],
             ),
           ),
