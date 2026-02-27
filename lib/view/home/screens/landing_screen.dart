@@ -87,32 +87,36 @@ class _LandingScreenState extends State<LandingScreen> {
                 color: Colors.white,
               ),
               child: Consumer<HomeProvider>(builder: (context, p, _) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  BottomNavButton(
-                    icon: 'assets/icons/home.svg',
-                    isSelected: p.selectedIndex == 0,
-                    onTap: () => p.onSelectedChange(0),
-                  ),
-                  BottomNavButton(
-                    icon: 'assets/icons/category.svg',
-                    isSelected: p.selectedIndex == 1,
-                    onTap: () => p.onSelectedChange(1),
-                  ),
-                  BottomNavButton(
-                    icon: 'assets/icons/restaurant.svg',
-                    isSelected: p.selectedIndex == 2,
-                    onTap: () => p.onSelectedChange(2),
-                  ),
-                  BottomNavButton(
-                    icon: 'assets/icons/profile.svg',
-                    isSelected: p.selectedIndex == 3,
-                    onTap: () => p.onSelectedChange(3),
-                  ),
-                ],
-              );
-            }),
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    BottomNavButton(
+                      icon: 'assets/icons/home.svg',
+                      label: 'Home',
+                      isSelected: p.selectedIndex == 0,
+                      onTap: () => p.onSelectedChange(0),
+                    ),
+                    BottomNavButton(
+                      icon: 'assets/icons/category.svg',
+                      label: 'Category',
+                      isSelected: p.selectedIndex == 1,
+                      onTap: () => p.onSelectedChange(1),
+                    ),
+                    BottomNavButton(
+                      icon: 'assets/icons/restaurant.svg',
+                      label: 'Restaurants',
+                      isSelected: p.selectedIndex == 2,
+                      onTap: () => p.onSelectedChange(2),
+                    ),
+                    BottomNavButton(
+                      icon: 'assets/icons/profile.svg',
+                      label: 'Profile',
+                      isSelected: p.selectedIndex == 3,
+                      onTap: () => p.onSelectedChange(3),
+                    ),
+                  ],
+                );
+              }),
             ),
           ),
         );

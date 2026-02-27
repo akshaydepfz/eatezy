@@ -6,10 +6,12 @@ class BottomNavButton extends StatelessWidget {
   const BottomNavButton({
     super.key,
     required this.icon,
+    required this.label,
     required this.isSelected,
     required this.onTap,
   });
   final String icon;
+  final String label;
   final bool isSelected;
   final Function() onTap;
 
@@ -18,6 +20,7 @@ class BottomNavButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           isSelected
               ? Container(
@@ -44,6 +47,15 @@ class BottomNavButton extends StatelessWidget {
                 icon,
                 color: isSelected ? AppColor.primary : Colors.grey.shade700,
               )),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? AppColor.primary : Colors.grey.shade700,
+            ),
+          ),
         ],
       ),
     );
