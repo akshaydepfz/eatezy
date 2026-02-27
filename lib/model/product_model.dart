@@ -14,6 +14,61 @@ class ProductModel {
   String vendorID;
   String shopName;
   bool isActive;
+  /// `true` = veg, `false` = non-veg, `null` = unknown/not provided.
+  final bool? isVeg;
+
+  bool get _isProbablyNonVeg {
+    final text = '${name.trim()} ${category.trim()} ${description.trim()}'
+        .toLowerCase();
+    if (text.isEmpty) return false;
+
+    // Strong non-veg keywords (keep conservative).
+    const nonVegWords = <String>[
+      'chicken',
+      'mutton',
+      'fish',
+      'prawn',
+      'prawns',
+      'shrimp',
+      'crab',
+      'egg',
+      'eggs',
+      'keema',
+      'lamb',
+      'beef',
+      'pork',
+      'bacon',
+      'pepperoni',
+      'sausage',
+      'salami',
+      'tuna',
+    ];
+
+    for (final w in nonVegWords) {
+      if (text.contains(w)) return true;
+    }
+    if (text.contains('non veg') ||
+        text.contains('non-veg') ||
+        text.contains('nonveg') ||
+        text.contains('non_veg')) {
+      return true;
+    }
+    return false;
+  }
+
+  bool get matchesVegFilter {
+    if (isVeg == true) return true;
+    if (isVeg == false) return false;
+    // Unknown: treat as veg unless it strongly looks non-veg.
+    return !_isProbablyNonVeg;
+  }
+
+  bool get matchesNonVegFilter {
+    if (isVeg == false) return true;
+    if (isVeg == true) return false;
+    // Unknown: include if it strongly looks non-veg.
+    return _isProbablyNonVeg;
+  }
 
   /// Multiple time slots when product is available.
   /// Example: [{"from":"09:00","to":"11:00"},{"from":"18:00","to":"21:00"}]
@@ -35,6 +90,7 @@ class ProductModel {
       required this.shopName,
       required this.isActive,
       required this.vendorID,
+      this.isVeg,
       required this.availabilitySlots});
 
   /// True if product has time-based availability (either from or to is set).
@@ -108,6 +164,7 @@ class ProductModel {
       shopName: shopName,
       vendorID: vendorID,
       isActive: isActive,
+      isVeg: isVeg,
       availabilitySlots:
           availabilitySlots.map((slot) => Map<String, String>.from(slot)).toList(),
     );
@@ -137,8 +194,73 @@ class ProductModel {
           : (data['is_active'] is bool
               ? data['is_active'] as bool
               : data['is_active'].toString().toLowerCase() == 'true'),
+      isVeg: _parseIsVeg(data),
       availabilitySlots: _parseAvailabilitySlots(data),
     );
+  }
+
+  static bool? _parseIsVeg(Map<String, dynamic> data) {
+    final keys = <String>[
+      'is_veg',
+      'isVeg',
+      'veg',
+      'is_non_veg',
+      'isNonVeg',
+      'non_veg',
+      'nonVeg',
+      'food_type',
+      'foodType',
+      'type',
+    ];
+
+    dynamic value;
+    String foundKey = '';
+    for (final k in keys) {
+      if (data.containsKey(k) && data[k] != null) {
+        value = data[k];
+        foundKey = k;
+        break;
+      }
+    }
+    if (value == null) return null;
+
+    if (value is bool) return value;
+
+    final raw = value.toString().trim().toLowerCase();
+    if (raw.isEmpty) return null;
+
+    // Positive veg signals
+    if (raw == 'true' ||
+        raw == '1' ||
+        raw == 'yes' ||
+        raw == 'y' ||
+        raw == 'veg' ||
+        raw == 'vegetarian') {
+      return true;
+    }
+
+    // Negative non-veg signals, including inverted boolean keys.
+    if (raw == 'false' || raw == '0' || raw == 'no' || raw == 'n') {
+      return false;
+    }
+    if (raw == 'nonveg' ||
+        raw == 'non-veg' ||
+        raw == 'non veg' ||
+        raw == 'non_veg' ||
+        raw == 'nv') {
+      return false;
+    }
+
+    // If the matched key indicates non-veg, invert when it looks boolean-ish.
+    if (foundKey == 'is_non_veg' ||
+        foundKey == 'isNonVeg' ||
+        foundKey == 'non_veg' ||
+        foundKey == 'nonVeg') {
+      if (raw == 'true' || raw == '1') return false;
+      if (raw == 'false' || raw == '0') return true;
+    }
+
+    return null;
   }
 
   static List<Map<String, String>> _parseAvailabilitySlots(

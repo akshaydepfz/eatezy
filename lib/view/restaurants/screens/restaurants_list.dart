@@ -49,7 +49,7 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
           onPressed: () => Navigator.maybePop(context),
         ),
         title: Text(
-          'Restaurants',
+          'Ready for pick up near you',
           style: GoogleFonts.rubik(
             fontSize: 20,
             fontWeight: FontWeight.w700,
@@ -99,7 +99,7 @@ class _RestaurantsListScreenState extends State<RestaurantsListScreen> {
                             child: Text(
                               _searchController.text.trim().isEmpty
                                   ? 'All Restaurants'
-                                      : '${sortedFiltered.length} result${sortedFiltered.length == 1 ? '' : 's'}',
+                                  : '${sortedFiltered.length} result${sortedFiltered.length == 1 ? '' : 's'}',
                               style: GoogleFonts.rubik(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -180,7 +180,8 @@ class _SearchBar extends StatelessWidget {
         ),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
-                icon: Icon(Icons.clear_rounded, size: 20, color: Colors.grey.shade600),
+                icon: Icon(Icons.clear_rounded,
+                    size: 20, color: Colors.grey.shade600),
                 onPressed: () {
                   controller.clear();
                   onChanged('');
@@ -201,7 +202,8 @@ class _SearchBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColor.primary, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       style: GoogleFonts.rubik(
         fontSize: 14,

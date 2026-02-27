@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const _SelfPickupInstructionCard(),
                 AppSpacing.h20,
                 Text(
-                  'Categories',
+                  'what do you want to pick up today ?',
                   style: GoogleFonts.rubik(
                       fontSize: 17, fontWeight: FontWeight.w600),
                 ),
@@ -316,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Top Restaurants',
+                      'Ready for pick up near you',
                       style: GoogleFonts.rubik(
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
@@ -360,11 +360,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, i) {
                           final vendor = sortedVendors[i];
                           final distance = p.computeDistanceToVendor(vendor);
+                          final estimatedTime = p.computeEstimatedTimeToVendor(vendor);
                           return RestuarantCard(
                               distance: distance.isNotEmpty
                                   ? '$distance away'
                                   : vendor.estimateDistance,
-                              time: '20 to 30 mints',
+                              estimatedTime: estimatedTime,
                               isActive: vendor.isActive,
                               openingTime: vendor.openingTime,
                               closingTime: vendor.closingTime,
@@ -387,7 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Top Dishes',
+                      'Trending pickups today',
                       style: GoogleFonts.rubik(
                           fontSize: 17, fontWeight: FontWeight.w600),
                     ),
@@ -767,7 +768,7 @@ class RestuarantCard extends StatelessWidget {
     required this.name,
     required this.onTap,
     required this.distance,
-    required this.time,
+    required this.estimatedTime,
     required this.isActive,
     required this.openingTime,
     required this.closingTime,
@@ -776,7 +777,7 @@ class RestuarantCard extends StatelessWidget {
   final String name;
   final Function() onTap;
   final String distance;
-  final String time;
+  final String estimatedTime;
   final bool isActive;
   final String openingTime;
   final String closingTime;
@@ -871,7 +872,7 @@ class RestuarantCard extends StatelessWidget {
                   ),
                 ],
               ),
-              if (distance.isNotEmpty)
+              if (distance.isNotEmpty || estimatedTime.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
                   child: Row(
@@ -883,7 +884,10 @@ class RestuarantCard extends StatelessWidget {
                       ),
                       AppSpacing.w5,
                       Text(
-                        distance,
+                        [
+                          if (distance.isNotEmpty) distance,
+                          if (estimatedTime.isNotEmpty) estimatedTime,
+                        ].join(' · '),
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     ],

@@ -1,5 +1,6 @@
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
+import 'package:eatezy/model/product_model.dart';
 import 'package:eatezy/view/cart/screens/cart_screen.dart';
 import 'package:eatezy/view/cart/services/cart_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
@@ -9,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shimmer/shimmer.dart';
+
+enum _FoodFilter { all, veg, nonVeg }
 
 class CategoryViewScreen extends StatefulWidget {
   const CategoryViewScreen(
@@ -20,6 +23,21 @@ class CategoryViewScreen extends StatefulWidget {
 }
 
 class _CategoryViewScreenState extends State<CategoryViewScreen> {
+  _FoodFilter _foodFilter = _FoodFilter.all;
+
+  List<ProductModel> _filteredProducts(List<ProductModel>? products) {
+    if (products == null) return [];
+    Iterable<ProductModel> current = products;
+    if (_foodFilter == _FoodFilter.veg) {
+      current = current.where((p) => p.matchesVegFilter);
+    } else if (_foodFilter == _FoodFilter.nonVeg) {
+      current = current.where((p) => p.matchesNonVegFilter);
+    }
+    final list = current.toList();
+    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +53,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
     final provider = Provider.of<CartService>(context);
     final restuarantProvider = Provider.of<RestuarantProvider>(context);
     final savedService = Provider.of<SavedItemsService>(context);
+    final displayProducts = _filteredProducts(restuarantProvider.catProducts);
 
     return Scaffold(
       appBar: AppBar(
@@ -73,10 +92,39 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                             fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '${restuarantProvider.catProducts?.length ?? 0} items found',
+                        restuarantProvider.catProducts == null
+                            ? 'Loading…'
+                            : '${displayProducts.length} items found',
                         style: TextStyle(color: Colors.white),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(15, 12, 15, 0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('All'),
+                    selected: _foodFilter == _FoodFilter.all,
+                    onSelected: (_) =>
+                        setState(() => _foodFilter = _FoodFilter.all),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Veg'),
+                    selected: _foodFilter == _FoodFilter.veg,
+                    onSelected: (_) =>
+                        setState(() => _foodFilter = _FoodFilter.veg),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Non-veg'),
+                    selected: _foodFilter == _FoodFilter.nonVeg,
+                    onSelected: (_) =>
+                        setState(() => _foodFilter = _FoodFilter.nonVeg),
                   ),
                 ],
               ),
@@ -108,12 +156,28 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
                       },
                     );
                   }
+                  final list = _filteredProducts(p.catProducts);
+                  if (list.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      child: Center(
+                        child: Text(
+                          'No items found',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                   return ListView.builder(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: p.catProducts!.length,
+                    itemCount: list.length,
                     itemBuilder: (context, index) {
-                      final product = p.catProducts![index];
+                      final product = list[index];
                       final cartIndex = provider.selectedProduct
                           .indexWhere((item) => item.id == product.id);
                       final quantity = cartIndex != -1

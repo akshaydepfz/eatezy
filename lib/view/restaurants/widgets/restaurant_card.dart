@@ -48,6 +48,7 @@ class RestaurantCard extends StatelessWidget {
     return Consumer<HomeProvider>(
       builder: (context, homeProvider, _) {
         final distance = _computeDistance(homeProvider, vendor);
+        final estimatedTime = homeProvider.computeEstimatedTimeToVendor(vendor);
         return Opacity(
       opacity: isActive ? 1 : 0.7,
       child: Material(
@@ -121,7 +122,7 @@ class RestaurantCard extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     distance.isNotEmpty
-                                        ? '$distance away'
+                                        ? '$distance away${estimatedTime.isNotEmpty ? ' · $estimatedTime' : ''}'
                                         : vendor.shopAddress.isNotEmpty
                                             ? vendor.shopAddress
                                             : '—',
@@ -135,7 +136,7 @@ class RestaurantCard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            if (vendor.estimateTime.isNotEmpty && isActive) ...[
+                            if (estimatedTime.isEmpty && vendor.estimateTime.isNotEmpty && isActive) ...[
                               const SizedBox(height: 2),
                               Row(
                                 children: [

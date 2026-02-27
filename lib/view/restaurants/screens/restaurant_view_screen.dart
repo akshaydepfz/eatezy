@@ -18,6 +18,8 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+enum _FoodFilter { all, veg, nonVeg }
+
 class RestaurantViewScreen extends StatefulWidget {
   const RestaurantViewScreen({super.key, required this.vendor});
   final VendorModel vendor;
@@ -28,6 +30,7 @@ class RestaurantViewScreen extends StatefulWidget {
 
 class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
   String? _selectedCategory;
+  _FoodFilter _foodFilter = _FoodFilter.all;
 
   /// Returns unique categories from products with item counts. Includes "All" for showing everything.
   Map<String, int> _getCategoriesWithCounts(List<ProductModel>? products) {
@@ -118,12 +121,25 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
 
   List<ProductModel> _filteredProducts(List<ProductModel>? products) {
     if (products == null) return [];
-    if (_selectedCategory == null) return products;
-    return products.where((p) {
-      final cat = (p.category).trim();
-      final key = cat.isEmpty ? 'Other' : cat;
-      return key == _selectedCategory;
-    }).toList();
+    Iterable<ProductModel> current = products;
+
+    if (_selectedCategory != null) {
+      current = current.where((p) {
+        final cat = (p.category).trim();
+        final key = cat.isEmpty ? 'Other' : cat;
+        return key == _selectedCategory;
+      });
+    }
+
+    if (_foodFilter == _FoodFilter.veg) {
+      current = current.where((p) => p.matchesVegFilter);
+    } else if (_foodFilter == _FoodFilter.nonVeg) {
+      current = current.where((p) => p.matchesNonVegFilter);
+    }
+
+    final list = current.toList();
+    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
   }
 
   @override
@@ -233,12 +249,19 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
               AppSpacing.h10,
               Consumer<HomeProvider>(
                 builder: (context, homeProvider, _) {
-                  final distance = homeProvider.computeDistanceToVendor(widget.vendor);
+                  final distance =
+                      homeProvider.computeDistanceToVendor(widget.vendor);
+                  final estimatedTime =
+                      homeProvider.computeEstimatedTimeToVendor(widget.vendor);
                   final distanceText = distance.isNotEmpty
                       ? '$distance away'
                       : widget.vendor.estimateDistance.isNotEmpty
                           ? '${widget.vendor.estimateDistance} away'
                           : '';
+                  final distanceAndTime = [
+                    if (distanceText.isNotEmpty) distanceText,
+                    if (estimatedTime.isNotEmpty) estimatedTime,
+                  ].join(' · ');
                   return Padding(
                     padding: const EdgeInsets.all(15.0),
                     child: Column(
@@ -270,178 +293,341 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                             ),
                             AppSpacing.w5,
                             Text(
-                              'Prep time: 25-30 min',
+                              distanceAndTime.isEmpty
+                                  ? 'Prep time: 25-30 min'
+                                  : distanceAndTime,
                               style: TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
-                    AppSpacing.h10,
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => OSMTrackingScreen(
-                              orderStatus: '',
-                              customerImage: '',
-                              customerName: '',
-                              orderID: '',
-                              vendorToken: '',
-                              vendorId: '',
-                              chatId: '',
-                              vendorImage: widget.vendor.shopImage,
-                              vendorName: widget.vendor.shopName,
-                              vendorPhone: widget.vendor.phone,
-                              isOrder: false,
-                              lat: double.parse(widget.vendor.lat),
-                              long: double.parse(widget.vendor.long),
+                        AppSpacing.h10,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => OSMTrackingScreen(
+                                  orderStatus: '',
+                                  customerImage: '',
+                                  customerName: '',
+                                  orderID: '',
+                                  vendorToken: '',
+                                  vendorId: '',
+                                  chatId: '',
+                                  vendorImage: widget.vendor.shopImage,
+                                  vendorName: widget.vendor.shopName,
+                                  vendorPhone: widget.vendor.phone,
+                                  isOrder: false,
+                                  lat: double.parse(widget.vendor.lat),
+                                  long: double.parse(widget.vendor.long),
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ),
-                        );
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
+                            padding: EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                SvgPicture.asset('assets/icons/map.svg'),
-                                AppSpacing.w10,
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                Row(
                                   children: [
-                                    Text(
-                                      'Direction to Restaurant',
-                                      style: TextStyle(fontSize: 16),
-                                    ),
-                                    Text(
-                                        distanceText.isNotEmpty
+                                    SvgPicture.asset('assets/icons/map.svg'),
+                                    AppSpacing.w10,
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Direction to Restaurant',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                        Text(distanceText.isNotEmpty
                                             ? '$distanceText from you'
                                             : 'Tap for directions'),
+                                      ],
+                                    ),
                                   ],
+                                ),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(Icons.arrow_forward),
                                 ),
                               ],
                             ),
-                            IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.arrow_forward),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                    AppSpacing.h20,
-                    Consumer<RestuarantProvider>(
-                      builder: (context, p, _) {
-                        final offersList = p.offers;
-                        if (offersList == null || offersList.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+                        AppSpacing.h20,
+                        Consumer<RestuarantProvider>(
+                          builder: (context, p, _) {
+                            final offersList = p.offers;
+                            if (offersList == null || offersList.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.local_offer_rounded,
-                                  size: 20,
-                                  color: AppColor.primary,
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.local_offer_rounded,
+                                      size: 20,
+                                      color: AppColor.primary,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Offers',
+                                      style: GoogleFonts.rubik(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 6),
+                                AppSpacing.h10,
+                                SizedBox(
+                                  height: 148,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: offersList.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 12),
+                                    itemBuilder: (context, index) {
+                                      final offer = offersList[index];
+                                      ProductModel? product;
+                                      for (final e in [
+                                        ...?p.products,
+                                        ...(p.featuredProducts ?? [])
+                                      ]) {
+                                        if (e.id == offer.productId) {
+                                          product = e;
+                                          break;
+                                        }
+                                      }
+                                      return _OfferCard(
+                                        offer: offer,
+                                        product: product,
+                                        vendorId: widget.vendor.id,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                AppSpacing.h20,
+                              ],
+                            );
+                          },
+                        ),
+                        Consumer<RestuarantProvider>(
+                          builder: (context, p, _) {
+                            if (p.featuredProducts == null) {
+                              return SizedBox();
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  'Offers',
+                                  'Featured Items',
                                   style: GoogleFonts.rubik(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                AppSpacing.h10,
+                                SizedBox(
+                                  height: 175,
+                                  child: ListView.builder(
+                                    itemCount: p.featuredProducts!.length,
+                                    scrollDirection: Axis.horizontal,
+                                    itemBuilder: (context, i) {
+                                      final product = p.featuredProducts![i];
+                                      final offer =
+                                          p.getOfferForProduct(product.id);
+                                      final displayPrice = offer != null
+                                          ? offer
+                                              .getDiscountedPrice(product.price)
+                                          : product.price;
+                                      final displaySlashed = offer != null
+                                          ? product.price.toStringAsFixed(2)
+                                          : product.slashedPrice;
+                                      final cartIndex = provider.selectedProduct
+                                          .indexWhere(
+                                              (item) => item.id == product.id);
+                                      final isSelected = cartIndex != -1;
+                                      return ProductCard(
+                                        onRemove: () {
+                                          final idx = provider.selectedProduct
+                                              .indexWhere((item) =>
+                                                  item.id == product.id);
+                                          if (idx != -1)
+                                            provider.onItemRemove(idx);
+                                        },
+                                        isSelected: isSelected,
+                                        isActive: product.isClickable,
+                                        availableAtTime:
+                                            product.availableAtTime,
+                                        onTap: () {
+                                          final toAdd = offer != null
+                                              ? product.copyWithPrice(
+                                                  price:
+                                                      offer.getDiscountedPrice(
+                                                          product.price),
+                                                  slashedPrice: product.price
+                                                      .toStringAsFixed(2))
+                                              : product;
+                                          provider.addProductWithVendorCheck(
+                                              context, toAdd);
+                                        },
+                                        image: product.image,
+                                        name: product.name,
+                                        price: displayPrice.toStringAsFixed(2),
+                                        slashedPrice: displaySlashed,
+                                      );
+                                    },
+                                  ),
+                                ),
+                                Divider(color: Colors.grey.shade300),
+                                AppSpacing.h20,
+                              ],
+                            );
+                          },
+                        ),
+                        Row(
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                ChoiceChip(
+                                  label: const Text('All'),
+                                  selected: _foodFilter == _FoodFilter.all,
+                                  onSelected: (_) => setState(
+                                      () => _foodFilter = _FoodFilter.all),
+                                ),
+                                ChoiceChip(
+                                  label: const Text('Veg'),
+                                  selected: _foodFilter == _FoodFilter.veg,
+                                  onSelected: (_) => setState(
+                                      () => _foodFilter = _FoodFilter.veg),
+                                ),
+                                ChoiceChip(
+                                  label: const Text('Non-veg'),
+                                  selected: _foodFilter == _FoodFilter.nonVeg,
+                                  onSelected: (_) => setState(
+                                      () => _foodFilter = _FoodFilter.nonVeg),
+                                ),
                               ],
                             ),
-                            AppSpacing.h10,
-                            SizedBox(
-                              height: 148,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: offersList.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 12),
-                                itemBuilder: (context, index) {
-                                  final offer = offersList[index];
-                                  ProductModel? product;
-                                  for (final e in [
-                                    ...?p.products,
-                                    ...(p.featuredProducts ?? [])
-                                  ]) {
-                                    if (e.id == offer.productId) {
-                                      product = e;
-                                      break;
-                                    }
-                                  }
-                                  return _OfferCard(
-                                    offer: offer,
-                                    product: product,
-                                    vendorId: widget.vendor.id,
-                                  );
-                                },
-                              ),
-                            ),
-                            AppSpacing.h20,
                           ],
-                        );
-                      },
-                    ),
-                    Consumer<RestuarantProvider>(
-                      builder: (context, p, _) {
-                        if (p.featuredProducts == null) {
-                          return SizedBox();
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        AppSpacing.h10,
+                        Row(
                           children: [
                             Text(
-                              'Featured Items',
+                              _selectedCategory != null
+                                  ? '$_selectedCategory'
+                                  : 'All Items',
                               style: GoogleFonts.rubik(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            AppSpacing.h10,
-                            SizedBox(
-                              height: 175,
-                              child: ListView.builder(
-                                itemCount: p.featuredProducts!.length,
-                                scrollDirection: Axis.horizontal,
-                                itemBuilder: (context, i) {
-                                  final product = p.featuredProducts![i];
-                                  final offer =
-                                      p.getOfferForProduct(product.id);
-                                  final displayPrice = offer != null
-                                      ? offer.getDiscountedPrice(product.price)
-                                      : product.price;
-                                  final displaySlashed = offer != null
-                                      ? product.price.toStringAsFixed(2)
-                                      : product.slashedPrice;
-                                  final cartIndex = provider.selectedProduct
-                                      .indexWhere(
-                                          (item) => item.id == product.id);
-                                  final isSelected = cartIndex != -1;
-                                  return ProductCard(
-                                    onRemove: () {
-                                      final idx = provider.selectedProduct
-                                          .indexWhere(
-                                              (item) => item.id == product.id);
-                                      if (idx != -1) provider.onItemRemove(idx);
-                                    },
-                                    isSelected: isSelected,
-                                    isActive: product.isClickable,
-                                    availableAtTime: product.availableAtTime,
-                                    onTap: () {
+                            if (_selectedCategory != null) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () =>
+                                    setState(() => _selectedCategory = null),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColor.primary.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Clear filter',
+                                    style: GoogleFonts.rubik(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColor.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        AppSpacing.h10,
+                        Consumer2<RestuarantProvider, SavedItemsService>(
+                          builder: (context, p, savedService, _) {
+                            final displayProducts =
+                                _filteredProducts(p.products);
+                            if (p.products == null) {
+                              return ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: 4,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Shimmer.fromColors(
+                                      baseColor: Colors.grey[300]!,
+                                      highlightColor: Colors.grey[100]!,
+                                      child: Container(
+                                        height: 200,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[300],
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            }
+                            if (displayProducts.isEmpty) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 30),
+                                child: Center(
+                                  child: Text(
+                                    'No items found',
+                                    style: GoogleFonts.rubik(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              physics: NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: displayProducts.length,
+                              itemBuilder: (context, index) {
+                                final product = displayProducts[index];
+                                final offer = p.getOfferForProduct(product.id);
+                                final cartIndex = provider.selectedProduct
+                                    .indexWhere(
+                                        (item) => item.id == product.id);
+                                final quantity = cartIndex != -1
+                                    ? provider
+                                        .selectedProduct[cartIndex].itemCount
+                                    : 0;
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 20),
+                                  child: MenuItemCard(
+                                    product: product,
+                                    offer: offer,
+                                    quantity: quantity,
+                                    isSaved: savedService.isSaved(product.id),
+                                    showRestaurantName: false,
+                                    onAdd: () {
                                       final toAdd = offer != null
                                           ? product.copyWithPrice(
                                               price: offer.getDiscountedPrice(
@@ -452,136 +638,28 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                                       provider.addProductWithVendorCheck(
                                           context, toAdd);
                                     },
-                                    image: product.image,
-                                    name: product.name,
-                                    price: displayPrice.toStringAsFixed(2),
-                                    slashedPrice: displaySlashed,
-                                  );
-                                },
-                              ),
-                            ),
-                            Divider(color: Colors.grey.shade300),
-                            AppSpacing.h20,
-                          ],
-                        );
-                      },
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          _selectedCategory != null
-                              ? '$_selectedCategory'
-                              : 'All Items',
-                          style: GoogleFonts.rubik(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (_selectedCategory != null) ...[
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () =>
-                                setState(() => _selectedCategory = null),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColor.primary.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Clear filter',
-                                style: GoogleFonts.rubik(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColor.primary,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    AppSpacing.h10,
-                    Consumer2<RestuarantProvider, SavedItemsService>(
-                      builder: (context, p, savedService, _) {
-                        final displayProducts = _filteredProducts(p.products);
-                        if (p.products == null) {
-                          return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: 4,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16),
-                                child: Shimmer.fromColors(
-                                  baseColor: Colors.grey[300]!,
-                                  highlightColor: Colors.grey[100]!,
-                                  child: Container(
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                                    onRemove: () {
+                                      if (cartIndex != -1) {
+                                        provider.onItemRemove(cartIndex);
+                                      }
+                                    },
+                                    onShare: () {
+                                      Share.share(
+                                        'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
+                                        subject: product.name,
+                                      );
+                                    },
+                                    onSaveToggle: () =>
+                                        savedService.toggleSaved(product.id),
                                   ),
-                                ),
-                              );
-                            },
-                          );
-                        }
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: displayProducts.length,
-                          itemBuilder: (context, index) {
-                            final product = displayProducts[index];
-                            final offer = p.getOfferForProduct(product.id);
-                            final cartIndex = provider.selectedProduct
-                                .indexWhere((item) => item.id == product.id);
-                            final quantity = cartIndex != -1
-                                ? provider.selectedProduct[cartIndex].itemCount
-                                : 0;
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 20),
-                              child: MenuItemCard(
-                                product: product,
-                                offer: offer,
-                                quantity: quantity,
-                                isSaved: savedService.isSaved(product.id),
-                                showRestaurantName: false,
-                                onAdd: () {
-                                  final toAdd = offer != null
-                                      ? product.copyWithPrice(
-                                          price: offer.getDiscountedPrice(
-                                              product.price),
-                                          slashedPrice:
-                                              product.price.toStringAsFixed(2))
-                                      : product;
-                                  provider.addProductWithVendorCheck(
-                                      context, toAdd);
-                                },
-                                onRemove: () {
-                                  if (cartIndex != -1) {
-                                    provider.onItemRemove(cartIndex);
-                                  }
-                                },
-                                onShare: () {
-                                  Share.share(
-                                    'Download the Eatezy app and enjoy ${product.name} and ${product.description}',
-                                    subject: product.name,
-                                  );
-                                },
-                                onSaveToggle: () =>
-                                    savedService.toggleSaved(product.id),
-                              ),
+                                );
+                              },
                             );
                           },
-                        );
-                      },
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
+                  );
                 },
               ),
             ],
@@ -996,6 +1074,7 @@ class ProductCard extends StatelessWidget {
   final Function() onRemove;
   final bool isSelected;
   final bool isActive;
+
   /// When product is unavailable due to time, show "Available at X" (e.g. "09:00").
   final String? availableAtTime;
 
@@ -1207,8 +1286,7 @@ class MenuItemCard extends StatelessWidget {
           .get();
       if (!context.mounted) return;
       if (!snapshot.exists || snapshot.data() == null) return;
-      final vendor =
-          VendorModel.fromFirestore(snapshot.data()!, snapshot.id);
+      final vendor = VendorModel.fromFirestore(snapshot.data()!, snapshot.id);
       if (!context.mounted) return;
       Navigator.push(
         context,
