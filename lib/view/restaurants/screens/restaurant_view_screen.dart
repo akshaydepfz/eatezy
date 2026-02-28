@@ -668,7 +668,9 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
       ),
       bottomNavigationBar: Visibility(
         visible: provider.selectedProduct.isNotEmpty,
-        child: GestureDetector(
+        child: SafeArea(
+          top: false,
+          child: GestureDetector(
           onTap: () {
             Navigator.push(
               context,
@@ -757,6 +759,7 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

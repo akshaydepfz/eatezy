@@ -5,7 +5,6 @@ import 'package:eatezy/utils/app_icons.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
-import 'package:eatezy/view/it_park/screens/it_park_list.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -146,12 +145,7 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
                     AppSpacing.w10,
                     Expanded(
                       child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ItParksList()));
-                        },
+                        onTap: () {},
                         child: Container(
                           height: MediaQuery.of(context).size.height * .28,
                           padding: EdgeInsets.all(10),

@@ -199,8 +199,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   if (vendors.isEmpty) {
                     return const _EmptyState();
                   }
-                  final allowedVendorIds =
-                      vendors.where((v) => !v.isSuspend).map((v) => v.id).toSet();
+                  final allowedVendorIds = vendors
+                      .where((v) => !v.isSuspend)
+                      .map((v) => v.id)
+                      .toSet();
                   final matchingProducts = _filterProducts(
                     _allProducts ?? const [],
                     _searchController.text,
@@ -263,7 +265,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               children: [
                                 if (_searchController.text.trim().isNotEmpty)
                                   Text(
-                                    'Products',
+                                    'Pick Up Items',
                                     style: GoogleFonts.rubik(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w700,
@@ -308,8 +310,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                       : 'No products found',
                                                   style: GoogleFonts.rubik(
                                                     fontSize: 13,
-                                                    color:
-                                                        Colors.grey.shade600,
+                                                    color: Colors.grey.shade600,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -322,8 +323,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                                 separatorBuilder: (_, __) =>
                                                     const SizedBox(width: 12),
                                                 itemBuilder: (context, i) {
-                                                  final p =
-                                                      matchingProducts[i];
+                                                  final p = matchingProducts[i];
                                                   final vendor =
                                                       vendorById[p.vendorID];
                                                   final shopName =
@@ -338,10 +338,10 @@ class _SearchScreenState extends State<SearchScreen> {
                                                     name: p.name,
                                                     description: subtitle,
                                                     imageUrl: p.image,
-                                                    restaurantName: shopName
-                                                            .isEmpty
-                                                        ? 'Restaurant'
-                                                        : shopName,
+                                                    restaurantName:
+                                                        shopName.isEmpty
+                                                            ? 'Restaurant'
+                                                            : shopName,
                                                     isRestaurantOpen:
                                                         isRestaurantActive,
                                                     onTap: vendor != null
@@ -440,7 +440,9 @@ class _ProductSearchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final desc = description.isEmpty
         ? 'No description'
-        : (description.length > 60 ? '${description.substring(0, 60)}…' : description);
+        : (description.length > 60
+            ? '${description.substring(0, 60)}…'
+            : description);
 
     return Material(
       color: Colors.white,
@@ -534,8 +536,9 @@ class _ProductSearchCard extends StatelessWidget {
                       style: GoogleFonts.rubik(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color:
-                            isRestaurantOpen ? Colors.green : Colors.red.shade700,
+                        color: isRestaurantOpen
+                            ? Colors.green
+                            : Colors.red.shade700,
                       ),
                     ),
                   ],

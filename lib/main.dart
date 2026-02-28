@@ -8,7 +8,6 @@ import 'package:eatezy/view/cart/services/payment_provider.dart';
 import 'package:eatezy/view/chat/chat_service.dart';
 import 'package:eatezy/view/home/screens/landing_screen.dart';
 import 'package:eatezy/view/home/services/home_provider.dart';
-import 'package:eatezy/view/it_park/services/it_service.dart';
 import 'package:eatezy/view/orders/services/order_service.dart';
 import 'package:eatezy/view/profile/services/profile_service.dart';
 import 'package:eatezy/view/restaurants/provider/restuarant_provider.dart';
@@ -91,7 +90,6 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => OrderService()),
         ChangeNotifierProvider(create: (context) => ChatProvider()),
         ChangeNotifierProvider(create: (context) => LoginSrvice()),
-        ChangeNotifierProvider(create: (context) => ItService()),
         ChangeNotifierProvider(create: (context) => ProfileService()),
         ChangeNotifierProvider(create: (context) => SavedItemsService()),
       ],

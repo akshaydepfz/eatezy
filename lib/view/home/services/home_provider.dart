@@ -85,11 +85,12 @@ class HomeProvider extends ChangeNotifier {
   }
 
   /// Computes estimated delivery time (e.g. "10 min", "20 min") from distance.
-  /// Assumes ~40 km/h average speed. Returns empty string if location unavailable.
+  /// Assumes ~40 km/h average speed. Adds ~2 min per km buffer for conservative estimate.
   String computeEstimatedTimeToVendor(VendorModel vendor) {
     final distanceKm = distanceInKmForSorting(vendor);
     if (distanceKm == double.infinity) return '';
-    final estimatedMinutes = (distanceKm / 40) * 60;
+    final baseMinutes = (distanceKm / 40) * 60;
+    final estimatedMinutes = baseMinutes + (distanceKm * 2); // +2 min per km buffer
     return formatTime(estimatedMinutes);
   }
 

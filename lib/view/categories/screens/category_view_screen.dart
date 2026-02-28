@@ -217,7 +217,9 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
       ),
       bottomNavigationBar: Visibility(
         visible: provider.selectedProduct.isNotEmpty,
-        child: GestureDetector(
+        child: SafeArea(
+          top: false,
+          child: GestureDetector(
           onTap: () {
             Navigator.push(
               context,
@@ -306,6 +308,7 @@ class _CategoryViewScreenState extends State<CategoryViewScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }
