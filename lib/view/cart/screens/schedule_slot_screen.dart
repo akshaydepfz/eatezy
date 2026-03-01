@@ -65,8 +65,8 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
       );
     }
 
-    final opening = _parseTime(vendor.openingTime);
-    final closing = _parseTime(vendor.closingTime);
+    final opening = _parseTime(vendor.effectiveOpeningTime);
+    final closing = _parseTime(vendor.effectiveClosingTime);
     final dateOptions = _buildDateOptions();
     final slots = _generateSlots(opening, closing, _selectedDate);
 
@@ -150,7 +150,7 @@ class _ScheduleSlotScreenState extends State<ScheduleSlotScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${vendor.shopName} • ${vendor.openingTime} - ${vendor.closingTime}',
+                                '${vendor.shopName} • ${vendor.openingHoursDisplay}',
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: Colors.grey.shade600,

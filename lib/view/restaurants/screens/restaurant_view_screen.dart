@@ -300,6 +300,40 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                             ),
                           ],
                         ),
+                        if (!widget.vendor.isCurrentlyOpen) ...[
+                          AppSpacing.h10,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                  color: Colors.orange.shade200, width: 1),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  size: 18,
+                                  color: Colors.orange.shade800,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Restaurant is currently closed. '
+                                    'Open hours: ${widget.vendor.openingHoursDisplay}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.orange.shade900,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         AppSpacing.h10,
                         GestureDetector(
                           onTap: () {

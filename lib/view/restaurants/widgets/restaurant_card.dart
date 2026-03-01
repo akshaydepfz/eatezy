@@ -44,14 +44,11 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = vendor.isActive;
     return Consumer<HomeProvider>(
       builder: (context, homeProvider, _) {
         final distance = _computeDistance(homeProvider, vendor);
         final estimatedTime = homeProvider.computeEstimatedTimeToVendor(vendor);
-        return Opacity(
-      opacity: isActive ? 1 : 0.7,
-      child: Material(
+        return Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
@@ -136,7 +133,7 @@ class RestaurantCard extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            if (estimatedTime.isEmpty && vendor.estimateTime.isNotEmpty && isActive) ...[
+                            if (estimatedTime.isEmpty && vendor.estimateTime.isNotEmpty) ...[
                               const SizedBox(height: 2),
                               Row(
                                 children: [
@@ -156,39 +153,28 @@ class RestaurantCard extends StatelessWidget {
                                 ],
                               ),
                             ],
-                            if (!isActive) ...[
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.schedule_outlined,
-                                    size: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      'Closed · ${vendor.openingTime} – ${vendor.closingTime}',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                'Opens ${vendor.openingTime}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.orange.shade700,
-                                  fontWeight: FontWeight.w500,
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.schedule_outlined,
+                                  size: 14,
+                                  color: Colors.grey.shade600,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    vendor.openingHoursDisplay,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -197,36 +183,17 @@ class RestaurantCard extends StatelessWidget {
                       padding: const EdgeInsets.only(right: 12, top: 38),
                       child: Icon(
                         Icons.chevron_right_rounded,
-                        color: isActive ? Colors.grey.shade400 : Colors.grey.shade300,
+                        color: Colors.grey.shade400,
                         size: 24,
                       ),
                     ),
                   ],
                 ),
-                if (!isActive)
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
-                        borderRadius: BorderRadius.circular(kRestaurantCardRadius),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Closed',
-                        style: GoogleFonts.rubik(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
         ),
-      ),
-    );
+      );
       },
     );
   }

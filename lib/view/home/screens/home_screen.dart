@@ -367,9 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ? '$distance away'
                                   : vendor.estimateDistance,
                               estimatedTime: estimatedTime,
-                              isActive: vendor.isActive,
-                              openingTime: vendor.openingTime,
-                              closingTime: vendor.closingTime,
+                              hoursText: vendor.openingHoursDisplay,
                               onTap: () {
                                 Navigator.push(
                                     context,
@@ -770,27 +768,23 @@ class RestuarantCard extends StatelessWidget {
     required this.onTap,
     required this.distance,
     required this.estimatedTime,
-    required this.isActive,
-    required this.openingTime,
-    required this.closingTime,
+    required this.hoursText,
   });
   final String image;
   final String name;
   final Function() onTap;
   final String distance;
   final String estimatedTime;
-  final bool isActive;
-  final String openingTime;
-  final String closingTime;
+  final String hoursText;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: isActive ? 1 : 0.65,
-      child: GestureDetector(
-        onTap: isActive ? onTap : null,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 10),
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 10),
+        child: SizedBox(
+          width: 160,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -823,24 +817,6 @@ class RestuarantCard extends StatelessWidget {
                         },
                       ),
                     ),
-                    if (!isActive)
-                      Container(
-                        height: 100,
-                        width: 160,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Closed',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -897,34 +873,24 @@ class RestuarantCard extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    isActive ? Icons.schedule : Icons.schedule_outlined,
+                    Icons.schedule_outlined,
                     size: 12,
-                    color: isActive ? Colors.green : Colors.grey,
+                    color: Colors.grey,
                   ),
                   AppSpacing.w5,
-                  Text(
-                    isActive
-                        ? '$openingTime – $closingTime'
-                        : 'Closed · $openingTime – $closingTime',
-                    style: TextStyle(
-                      color: isActive ? Colors.green : Colors.grey,
-                      fontSize: 12,
+                  Expanded(
+                    child: Text(
+                      hoursText,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              if (!isActive)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    'Closed',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.red.shade700,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
