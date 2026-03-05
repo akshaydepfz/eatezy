@@ -300,40 +300,40 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
                             ),
                           ],
                         ),
-                        if (!widget.vendor.isCurrentlyOpen) ...[
-                          AppSpacing.h10,
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.orange.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Colors.orange.shade200, width: 1),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline_rounded,
-                                  size: 18,
-                                  color: Colors.orange.shade800,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Restaurant is currently closed. '
-                                    'Open hours: ${widget.vendor.openingHoursDisplay}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.orange.shade900,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        // if (!widget.vendor.isCurrentlyOpen) ...[
+                        //   AppSpacing.h10,
+                        //   Container(
+                        //     padding: const EdgeInsets.symmetric(
+                        //         horizontal: 12, vertical: 8),
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.orange.shade50,
+                        //       borderRadius: BorderRadius.circular(8),
+                        //       border: Border.all(
+                        //           color: Colors.orange.shade200, width: 1),
+                        //     ),
+                        //     child: Row(
+                        //       children: [
+                        //         Icon(
+                        //           Icons.info_outline_rounded,
+                        //           size: 18,
+                        //           color: Colors.orange.shade800,
+                        //         ),
+                        //         const SizedBox(width: 8),
+                        //         Expanded(
+                        //           child: Text(
+                        //             'Restaurant is currently closed. '
+                        //             'Open hours: ${widget.vendor.openingHoursDisplay}',
+                        //             style: TextStyle(
+                        //               fontSize: 13,
+                        //               color: Colors.orange.shade900,
+                        //               fontWeight: FontWeight.w500,
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ],
                         AppSpacing.h10,
                         GestureDetector(
                           onTap: () {
@@ -705,95 +705,95 @@ class _RestaurantViewScreenState extends State<RestaurantViewScreen> {
         child: SafeArea(
           top: false,
           child: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const CartScreen(),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CartScreen(),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
+              height: 60,
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(60),
+                color: AppColor.primary,
               ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-            height: 60,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(60),
-              color: AppColor.primary,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                SizedBox(
-                  height: 40,
-                  width: 100,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: provider.selectedProduct.length,
-                    itemBuilder: (context, index) {
-                      return Transform.translate(
-                        offset: Offset(-index * 40, 0),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(40),
-                            child:
-                                provider.selectedProduct[index].image.isNotEmpty
-                                    ? Image.network(
-                                        provider.selectedProduct[index].image,
-                                        width: 40,
-                                        height: 40,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        color: Colors.grey.shade200,
-                                        child: Icon(
-                                          Icons.restaurant,
-                                          size: 32,
-                                          color: Colors.grey.shade400,
-                                        ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SizedBox(
+                    height: 40,
+                    width: 100,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: provider.selectedProduct.length,
+                      itemBuilder: (context, index) {
+                        return Transform.translate(
+                          offset: Offset(-index * 40, 0),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: provider
+                                      .selectedProduct[index].image.isNotEmpty
+                                  ? Image.network(
+                                      provider.selectedProduct[index].image,
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      color: Colors.grey.shade200,
+                                      child: Icon(
+                                        Icons.restaurant,
+                                        size: 32,
+                                        color: Colors.grey.shade400,
                                       ),
+                                    ),
+                            ),
                           ),
+                        );
+                      },
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'View cart',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
-                      );
-                    },
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'View cart',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
-                    ),
-                    Text(
-                      "${provider.selectedProduct.length} ITEMS",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white,
+                      Text(
+                        "${provider.selectedProduct.length} ITEMS",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                AppSpacing.w20,
-                CircleAvatar(
-                  backgroundColor: Colors.green.shade500,
-                  child: const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
+                    ],
                   ),
-                ),
-              ],
+                  AppSpacing.w20,
+                  CircleAvatar(
+                    backgroundColor: Colors.green.shade500,
+                    child: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }
