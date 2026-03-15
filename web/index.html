@@ -7,13 +7,13 @@
   <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
-
+  
     The path provided below has to start and end with a slash "/" in order for
     it to work correctly.
-
+  
     For more details:
     * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
+  
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
@@ -22,6 +22,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -40,18 +41,109 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+  <!-- Removed firebase-messaging-compat.js for Safari/iOS web stability -->
 
-  <!-- Firebase reCAPTCHA Configuration -->
-  <!-- 
-    reCAPTCHA Site Key: 6LcHSyssAAAAANlIG9H1Nl2jeKhoR-ARMmLUFnHQ
-    This key is configured in Firebase Console under:
-    Authentication > Settings > reCAPTCHA integration
-    
-    Note: Firebase Auth automatically handles reCAPTCHA for phone authentication.
-    The Flutter firebase_auth package uses this key automatically - no manual configuration needed.
-    For App Check integration, this key can be used in the activate() method.
-  -->
+  <!-- WebGL compatibility workaround for Safari/iOS WebKit -->
+  <script>
+    (function () {
+      var isAppleWebKit = /AppleWebKit\/\d+\.\d+/.test(navigator.userAgent);
+      var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (!isAppleWebKit) {
+        return;
+      }
+
+      var originalGetContext = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+        if (type === 'webgl2') {
+          var gl = originalGetContext.call(this, 'webgl2', attrs);
+          if (!gl) {
+            gl = originalGetContext.call(this, 'webgl', attrs) ||
+                 originalGetContext.call(this, 'experimental-webgl', attrs);
+          }
+          return gl;
+        }
+        return originalGetContext.call(this, type, attrs);
+      };
+    })();
+  </script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #ffffff;
+    }
+
+    #flutter-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      z-index: 9999;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      color: #111827;
+    }
+
+    #flutter-loader-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 24px;
+      background: radial-gradient(circle at 0 0, #f97316, #fb923c);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    }
+
+    #flutter-loader-spinner {
+      width: 32px;
+      height: 32px;
+      border-radius: 9999px;
+      border: 3px solid rgba(253, 186, 116, 0.4);
+      border-top-color: #f97316;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    #flutter-loader-text {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    #flutter-loader-subtext {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    #flutter-loader-help {
+      display: none;
+      margin-top: 16px;
+      font-size: 12px;
+      color: #6b7280;
+      max-width: 320px;
+      text-align: center;
+    }
+
+    #flutter-loader-help code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #f3f4f6;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -59,6 +151,46 @@
   <!-- This container will be used by Flutter Firebase Auth RecaptchaVerifier -->
   <!-- Firebase will render the reCAPTCHA widget here when needed -->
   <div id="recaptcha-container"></div>
+
+  <!-- Initial loading overlay and fallback for Safari/iOS white-screen issues -->
+  <div id="flutter-loader">
+    <div id="flutter-loader-logo">
+      <div id="flutter-loader-spinner"></div>
+    </div>
+    <div id="flutter-loader-text">Loading Eatezy…</div>
+    <div id="flutter-loader-subtext">Just a moment while we set things up.</div>
+    <div id="flutter-loader-help">
+      If this screen stays here for more than a few seconds:
+      <br><br>
+      1. Try a quick refresh.<br>
+      2. If it still doesn’t load, clear the browser cache for this site and open it again.<br>
+      3. On iOS, make sure you are on the latest Safari or Chrome version.
+    </div>
+  </div>
+
+  <script>
+    // Hide the loader when Flutter attaches to the DOM
+    window.addEventListener('load', function () {
+      var loader = document.getElementById('flutter-loader');
+      if (loader) {
+        // Keep it for a brief moment to avoid flash
+        setTimeout(function () {
+          loader.style.display = 'none';
+        }, 500);
+      }
+    });
+
+    // Show helpful instructions if something goes wrong and Flutter never boots
+    setTimeout(function () {
+      var help = document.getElementById('flutter-loader-help');
+      var text = document.getElementById('flutter-loader-subtext');
+      if (help && text) {
+        help.style.display = 'block';
+        text.textContent = 'Still working on it…';
+      }
+    }, 8000);
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 
