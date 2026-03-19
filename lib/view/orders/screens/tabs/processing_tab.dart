@@ -1,5 +1,6 @@
 import 'package:eatezy/map_example.dart';
 import 'package:eatezy/model/order_model.dart';
+import 'package:eatezy/model/delivery_boy_model.dart';
 import 'package:eatezy/style/app_color.dart';
 import 'package:eatezy/utils/app_spacing.dart';
 import 'package:eatezy/view/orders/screens/tabs/cancel/cancell_order.dart';
@@ -9,6 +10,7 @@ import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Order total + transaction fee (amount paid) for display.
 String _formatOrderTotal(String totalPrice, double transactionFee) {
@@ -96,11 +98,36 @@ class ProcessingTab extends StatelessWidget {
                     ),
                   );
                 },
-                onCall: () {
-                  final phone = order.vendorPhone.trim();
-                  final uri = phone.startsWith('+')
-                      ? Uri.parse('tel:$phone')
-                      : Uri.parse('tel:+91$phone');
+                onCall: () async {
+                  // If this is an online delivery with a linked rider, call the delivery partner.
+                  // Otherwise, fall back to calling the restaurant.
+                  String phoneToCall = order.vendorPhone.trim();
+
+                  if (order.isOnlineDelivery &&
+                      order.deliveryBoyId.trim().isNotEmpty) {
+                    try {
+                      final snapshot = await FirebaseFirestore.instance
+                          .collection('delivery_boys')
+                          .doc(order.deliveryBoyId)
+                          .get();
+                      if (snapshot.exists) {
+                        final data = snapshot.data() as Map<String, dynamic>;
+                        final rider = DeliveryBoyModel.fromFirestore(
+                            data, snapshot.id);
+                        if (rider.phone.trim().isNotEmpty) {
+                          phoneToCall = rider.phone.trim();
+                        }
+                      }
+                    } catch (_) {
+                      // Ignore and use vendor phone as fallback.
+                    }
+                  }
+
+                  if (phoneToCall.isEmpty) return;
+
+                  final uri = phoneToCall.startsWith('+')
+                      ? Uri.parse('tel:$phoneToCall')
+                      : Uri.parse('tel:+91$phoneToCall');
                   launchUrl(uri);
                 },
                 canCancel: order.orderStatus == 'Waiting',
@@ -587,7 +614,9 @@ class _ProcessingOrderCard extends StatelessWidget {
                 if (order.vendorPhone.trim().isNotEmpty) ...[
                   const SizedBox(height: 12),
                   _OutlinedActionButton(
-                    label: 'Call for pick up help',
+                    label: order.isOnlineDelivery
+                        ? 'Call delivery partner'
+                        : 'Call for pick up help',
                     onTap: onCall,
                     isDestructive: false,
                   ),

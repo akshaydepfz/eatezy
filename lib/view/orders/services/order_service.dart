@@ -29,17 +29,20 @@ class OrderService extends ChangeNotifier {
 
       if (orders != null) {
         for (var item in orders!) {
-          if (item.isCancelled == false && item.orderStatus == 'Completed') {
+          // Completed orders: includes traditional "Completed" and "Order Delivered"
+          // and any order the model flags as completed.
+          if (item.isCompleted) {
             deliveredOrders.add(item);
-            notifyListeners();
           }
-          if (item.orderStatus != 'Completed' && !item.isCancelled) {
+
+          // Processing orders: active, non-cancelled, and not completed.
+          if (item.isProcessing) {
             upmcomingedOrders.add(item);
-            notifyListeners();
           }
+
+          // Cancelled orders.
           if (item.isCancelled) {
             cancellOrders.add(item);
-            notifyListeners();
           }
         }
       }

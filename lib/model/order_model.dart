@@ -35,6 +35,9 @@ class OrderModel {
   double packingFee;
   double platformCharge;
 
+  /// True when this order was placed via online delivery (vs. in-store/phone).
+  bool isOnlineDelivery;
+
   /// Online payment transaction fee (e.g. 2.5% of order total). 0 for COD.
   double transactionFee;
   List<OrderedProduct> products;
@@ -45,6 +48,21 @@ class OrderModel {
 
   /// True when order is scheduled for later delivery.
   bool isScheduled;
+
+  /// Convenience getter: whether this order should be treated as completed.
+  ///
+  /// We consider an order completed when:
+  /// - it is marked delivered by the backend (`isDelivered == true`), or
+  /// - the textual status is explicitly "Order Delivered".
+  bool get isCompleted =>
+      isDelivered == true || orderStatus.trim() == 'Order Delivered';
+
+  /// Convenience getter: whether this order should be treated as still processing.
+  ///
+  /// Processing means:
+  /// - it has not been cancelled
+  /// - and it is not completed yet (see [isCompleted]).
+  bool get isProcessing => !isCancelled && !isCompleted;
 
   OrderModel(
       {required this.id,
@@ -86,7 +104,8 @@ class OrderModel {
       this.platformCharge = 0.0,
       this.transactionFee = 0.0,
       this.scheduledFor = '',
-      this.isScheduled = false});
+      this.isScheduled = false,
+      this.isOnlineDelivery = false});
 
   factory OrderModel.fromFirestore(Map<String, dynamic> data, String id) {
     return OrderModel(
@@ -134,7 +153,9 @@ class OrderModel {
             : 0,
         scheduledFor: data['scheduled_for'] ?? '',
         isScheduled: data['is_scheduled'] ??
-            ((data['scheduled_for']?.toString().trim().isNotEmpty ?? false)));
+            ((data['scheduled_for']?.toString().trim().isNotEmpty ?? false)),
+        isOnlineDelivery:
+            (data['is_online_delivery'] as bool?) ?? false);
   }
 
   Map<String, dynamic> toMap() {
@@ -178,6 +199,7 @@ class OrderModel {
       'preparation_time': preparationTimeMinutes,
       'scheduled_for': scheduledFor,
       'is_scheduled': isScheduled,
+      'is_online_delivery': isOnlineDelivery,
     };
   }
 }

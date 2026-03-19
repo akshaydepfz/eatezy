@@ -148,7 +148,9 @@ class ProcessingOrderBottomCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'call for pick up help',
+                              order.isOnlineDelivery
+                                  ? 'Call delivery partner'
+                                  : 'call for pick up help',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,

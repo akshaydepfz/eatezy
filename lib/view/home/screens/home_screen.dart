@@ -16,6 +16,8 @@ import 'package:eatezy/view/restaurants/services/saved_items_service.dart';
 import 'package:eatezy/view/search/screens/search_screen.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eatezy/model/delivery_boy_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
@@ -538,11 +540,36 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       );
                     },
-                    onCall: () {
-                      final phone = order.vendorPhone.trim();
-                      final uri = phone.startsWith('+')
-                          ? Uri.parse('tel:$phone')
-                          : Uri.parse('tel:+91$phone');
+                    onCall: () async {
+                      // If this is an online delivery with a linked rider, call the delivery partner.
+                      // Otherwise, fall back to calling the restaurant.
+                      String phoneToCall = order.vendorPhone.trim();
+
+                      if (order.isOnlineDelivery &&
+                          order.deliveryBoyId.trim().isNotEmpty) {
+                        try {
+                          final snapshot = await FirebaseFirestore.instance
+                              .collection('delivery_boys')
+                              .doc(order.deliveryBoyId)
+                              .get();
+                          if (snapshot.exists) {
+                            final data = snapshot.data() as Map<String, dynamic>;
+                            final rider = DeliveryBoyModel.fromFirestore(
+                                data, snapshot.id);
+                            if (rider.phone.trim().isNotEmpty) {
+                              phoneToCall = rider.phone.trim();
+                            }
+                          }
+                        } catch (_) {
+                          // Ignore and use vendor phone as fallback.
+                        }
+                      }
+
+                      if (phoneToCall.isEmpty) return;
+
+                      final uri = phoneToCall.startsWith('+')
+                          ? Uri.parse('tel:$phoneToCall')
+                          : Uri.parse('tel:+91$phoneToCall');
                       launchUrl(uri);
                     },
                   );
@@ -860,12 +887,16 @@ class RestuarantCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                       AppSpacing.w5,
-                      Text(
-                        [
-                          if (distance.isNotEmpty) distance,
-                          if (estimatedTime.isNotEmpty) estimatedTime,
-                        ].join(' · '),
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      Expanded(
+                        child: Text(
+                          [
+                            if (distance.isNotEmpty) distance,
+                            if (estimatedTime.isNotEmpty) estimatedTime,
+                          ].join(' · '),
+                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

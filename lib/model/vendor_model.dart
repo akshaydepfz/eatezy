@@ -11,6 +11,7 @@ class VendorModel {
   final String shopImage;
   bool isActive;
   bool isSuspend;
+  bool isOnlineOrdering;
   final String estimateTime;
   final String estimateDistance;
   final String lat;
@@ -40,6 +41,7 @@ class VendorModel {
       required this.shopImage,
       required this.isActive,
       required this.isSuspend,
+      this.isOnlineOrdering = false,
       required this.estimateTime,
       required this.estimateDistance,
       required this.lat,
@@ -166,6 +168,7 @@ class VendorModel {
         shopImage: data['shop_image'] ?? '',
         isActive: data['is_active'] ?? false,
         isSuspend: data['is_suspend'] ?? false,
+        isOnlineOrdering: (data['is_online_ordering'] as bool?) ?? false,
         estimateDistance: estimateDistance ?? data['estimateDistance'] ?? '',
         estimateTime: estimateTime ?? data['estimateTime'] ?? '',
         lat: data['lat'] ?? '',

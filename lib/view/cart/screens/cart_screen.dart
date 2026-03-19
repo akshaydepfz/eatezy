@@ -145,6 +145,12 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                   ),
                   AppSpacing.h15,
+                  _SectionCard(
+                    radius: _cardRadius,
+                    elevation: _elevation,
+                    child: _DeliveryModeSelector(provider: provider),
+                  ),
+                  AppSpacing.h15,
                   GestureDetector(
                     onTap: () => _showCouponSheet(context, provider),
                     child: _SectionCard(
@@ -366,12 +372,24 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                             backgroundColor: AppColor.primary,
                           ),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PaymentMethodScreen(),
-                            ),
-                          ),
+                          onPressed: () {
+                            if (provider.isOnlineDelivery == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Please select Pickup or Delivery before placing your order.'),
+                                ),
+                              );
+                              return;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const PaymentMethodScreen(),
+                              ),
+                            );
+                          },
                           child: const Text(
                             'Place order',
                             style: TextStyle(
@@ -397,12 +415,24 @@ class _CartScreenState extends State<CartScreen> {
                             foregroundColor: AppColor.primary,
                             backgroundColor: Colors.transparent,
                           ),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ScheduleSlotScreen(),
-                            ),
-                          ),
+                          onPressed: () {
+                            if (provider.isOnlineDelivery == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Please select Pickup or Delivery before scheduling your order.'),
+                                ),
+                              );
+                              return;
+                            }
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ScheduleSlotScreen(),
+                              ),
+                            );
+                          },
                           child: const Text(
                             'Schedule',
                             style: TextStyle(
@@ -502,6 +532,200 @@ class _SectionCard extends StatelessWidget {
         ],
       ),
       child: child,
+    );
+  }
+}
+
+class _DeliveryModeSelector extends StatelessWidget {
+  const _DeliveryModeSelector({required this.provider});
+
+  final CartService provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final vendor = provider.currentVendor;
+    final supportsOnline = provider.vendorSupportsOnlineOrdering;
+
+    // If vendor not loaded yet, show a subtle placeholder.
+    if (vendor == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'How would you like to get your order?',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          AppSpacing.h10,
+          Text(
+            'Loading restaurant options...',
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey.shade500,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.delivery_dining_rounded,
+                size: 20, color: AppColor.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'How would you like to get your order?',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        AppSpacing.h10,
+        Text(
+          supportsOnline
+              ? (provider.isOnlineDelivery == null
+                  ? 'Please choose pickup or delivery before placing your order.'
+                  : 'You can change this anytime before placing your order.')
+              : 'Delivery is not available for this restaurant. Pickup only.',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        AppSpacing.h10,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: [
+              Expanded(
+                child: _DeliveryModeOption(
+                  title: 'Pickup',
+                  subtitle: 'Collect from restaurant',
+                  icon: Icons.storefront_rounded,
+                  selected: provider.isOnlineDelivery == false,
+                  onTap: () => provider.setOnlineDelivery(false),
+                ),
+              ),
+              AppSpacing.w10,
+              if (supportsOnline) ...[
+                const SizedBox(width: 4),
+                Expanded(
+                  child: _DeliveryModeOption(
+                    title: 'Delivery',
+                    subtitle: 'Rider to your address',
+                    icon: Icons.delivery_dining_rounded,
+                    selected: provider.isOnlineDelivery == true,
+                    onTap: () => provider.setOnlineDelivery(true),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DeliveryModeOption extends StatelessWidget {
+  const _DeliveryModeOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color borderColor =
+        selected ? AppColor.primary : Colors.grey.shade300;
+    final Color bgColor =
+        selected ? AppColor.primary.withOpacity(0.08) : Colors.white;
+    final Color textColor =
+        selected ? AppColor.primary : Colors.grey.shade800;
+
+    return Material(
+      color: bgColor,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: borderColor, width: 1.3),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColor.primary.withOpacity(0.12)
+                      : Colors.grey.shade100,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: textColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

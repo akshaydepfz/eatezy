@@ -29,6 +29,10 @@ class CartService extends ChangeNotifier {
   TextEditingController couponController = TextEditingController();
   TextEditingController notesController = TextEditingController();
 
+  /// True when user chooses delivery to address (vs. pickup at restaurant).
+  /// Null means user has not decided yet (cart just opened).
+  bool? isOnlineDelivery;
+
   Future<void> gettVendors() async {
     try {
       QuerySnapshot snapshot =
@@ -235,6 +239,14 @@ class CartService extends ChangeNotifier {
   String? get cartVendorId =>
       selectedProduct.isNotEmpty ? selectedProduct.first.vendorID : null;
 
+  /// Convenience getter for the current cart's vendor model.
+  VendorModel? get currentVendor =>
+      cartVendorId != null ? findVendorById(cartVendorId!) : null;
+
+  /// Whether the current vendor supports online ordering/delivery.
+  bool get vendorSupportsOnlineOrdering =>
+      currentVendor?.isOnlineOrdering ?? false;
+
   /// Packing fee for the current cart's vendor (null or 0 when not applicable).
   double? get cartPackingFee {
     final id = cartVendorId;
@@ -252,6 +264,8 @@ class CartService extends ChangeNotifier {
       BuildContext context, ProductModel product) async {
     if (selectedProduct.isEmpty) {
       addProduct(product);
+      // No default delivery mode; user must choose.
+      isOnlineDelivery = null;
       return;
     }
     if (selectedProduct.first.vendorID == product.vendorID) {
@@ -282,6 +296,8 @@ class CartService extends ChangeNotifier {
     if (confirmed == true) {
       clearCart();
       addProduct(product);
+      // After switching restaurant, require fresh choice again.
+      isOnlineDelivery = null;
     }
   }
 
@@ -313,6 +329,13 @@ class CartService extends ChangeNotifier {
     totalAmount += cartPlatformFee;
 
     return double.parse(totalAmount.toStringAsFixed(2));
+  }
+
+  /// Updates whether this order will be delivered (true) or picked up (false).
+  void setOnlineDelivery(bool value) {
+    if (isOnlineDelivery == value) return;
+    isOnlineDelivery = value;
+    notifyListeners();
   }
 
   BuildContext? _paymentContext;
@@ -444,6 +467,8 @@ class CartService extends ChangeNotifier {
         );
       }).toList();
 
+      final vendor = findVendorById(vendorId);
+
       final baseAmount = getTotalAmount(0, selectedCoupon);
       final transactionFee = _deliveryTypeForOrder == 'online'
           ? baseAmount * (kOnlineTransactionFeePercent / 100)
@@ -476,20 +501,21 @@ class CartService extends ChangeNotifier {
           deliveryCharge: 0,
           totalPrice: baseAmount.toStringAsFixed(2),
           transactionFee: transactionFee,
-          lat: findVendorById(vendorId)!.lat,
-          long: findVendorById(vendorId)!.long,
+          lat: vendor?.lat ?? '',
+          long: vendor?.long ?? '',
           customerImage: customer!.image,
-          vendorName: findVendorById(vendorId)!.shopName,
-          shopImage: findVendorById(vendorId)!.shopImage,
-          vendorPhone: findVendorById(vendorId)!.phone,
+          vendorName: vendor?.shopName ?? '',
+          shopImage: vendor?.shopImage ?? '',
+          vendorPhone: vendor?.phone ?? '',
           chatId: '',
           products: orderedProducts,
           discount: selectedCoupon?.discount.toString() ?? '0',
           notes: notesController.text.trim(),
           packingFee:
-              double.tryParse(findVendorById(vendorId)?.packingFee ?? '0') ??
-                  0.0,
-          platformCharge: cartPlatformFee);
+              double.tryParse(vendor?.packingFee ?? '0') ?? 0.0,
+          platformCharge: cartPlatformFee,
+          isOnlineDelivery: (vendor?.isOnlineOrdering == true) &&
+              (isOnlineDelivery == true));
 
       await FirebaseFirestore.instance.collection('cart').add(order.toMap());
     }
